@@ -1,8 +1,8 @@
-# MaximusChain Library
+# Multichain Library
 
-A pure and powerful JavaScript library for MaximusChain.
+A pure and powerful multi-chain cryptocurrency primitives library.
 
-MaximusChain is a peer-to-peer platform for the next generation of financial technology. The decentralized nature of the network allows for highly resilient infrastructure.
+The library is designed to be chain-agnostic: it ships with built-in support for MaximusChain, and you can register any other chain by providing its configuration.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ MaximusChain is a peer-to-peer platform for the next generation of financial tec
 ### NodeJS
 
 ```
-npm install @maximus-chain/maximus-lib
+npm install @maximus-chain/multichain-lib
 ```
 
 ### Browser
@@ -24,10 +24,11 @@ npm install @maximus-chain/maximus-lib
 #### CDN Standalone
 
 ```html
-<script src="https://unpkg.com/@maximus-chain/maximus-lib"></script>
+<script src="https://unpkg.com/@maximus-chain/multichain-lib"></script>
 <script>
-  const { PrivateKey } = maximus;
-  const privateKey = new PrivateKey();
+  const multichain = window.multichain;
+  const maximus = multichain.create('maximus');
+  const privateKey = new maximus.PrivateKey();
   const address = privateKey.toAddress().toString();
   ...
 </script>
@@ -39,15 +40,17 @@ npm install @maximus-chain/maximus-lib
 npm run build
 ```
 
-This will generate a file named `maximus-lib.min.js` in the `dist/` folder.
+This will generate a file named `multichain-lib.min.js` in the `dist/` folder.
 
 ## Usage
 
 ### Browser
 
 ```html
-<script src="./dist/maximus-lib.min.js" type="text/javascript"></script>
+<script src="./dist/multichain-lib.min.js" type="text/javascript"></script>
 <script>
+  const multichain = window.multichain;
+  const maximus = multichain.create('maximus');
   const PrivateKey = maximus.PrivateKey;
   const privateKey = new PrivateKey();
   const address = privateKey.toAddress().toString();
@@ -57,8 +60,8 @@ This will generate a file named `maximus-lib.min.js` in the `dist/` folder.
 ### Development & Tests
 
 ```sh
-git clone https://github.com/Maximus-Chain/maximus-lib
-cd maximus-lib
+git clone https://github.com/Maximus-Chain/multichain-lib
+cd multichain-lib
 npm install
 ```
 
@@ -70,21 +73,41 @@ npm test
 
 You can also run just the Node.js tests with `npm run test:node`, just the browser tests with `npm run test:browser` or run a test coverage report with `npm run coverage`.
 
+## Multi-chain support
+
+The library is multi-chain: you specify which chain you want, and it returns an isolated library instance configured for that chain. MaximusChain is registered as a built-in chain.
+
+```javascript
+const { create, registerChain, chains, algorithms, registerAlgorithm } = require('@maximus-chain/multichain-lib');
+
+// Built-in chain (MaximusChain)
+const maximus = create('maximus');
+const addr = new maximus.Address('...', 'livenet');
+
+// Register a custom chain with your own config
+registerChain('mychain', {
+  livenet: { /* ... */ },
+  testnet: { /* ... */ },
+  algorithms: { x11: (buf) => /* ... */ },
+});
+const mine = create('mychain');
+```
+
 ## Supported API
 
-The library exposes the components required to build, sign and broadcast MaximusChain transactions, manage addresses, derive HD keys, encode messages, and work with masternode provider registration payloads.
+The library exposes the components required to build, sign and broadcast transactions, manage addresses, derive HD keys, encode messages, and work with masternode provider registration payloads. Every chain is configured with its own data (address prefixes, network magic, message magic, hash algorithm).
 
 | Component | Description |
 |-----------|-------------|
-| `Address` | Parse, validate and generate MAXI/TMAXI addresses |
+| `Address` | Parse, validate and generate chain-specific addresses |
 | `Unit` | Convert between BTC and satoshis |
 | `Transaction` | Build, sign, serialize and deserialize transactions, including special ProRegTx |
 | `HDPublicKey` / `HDPrivateKey` | BIP32 hierarchical deterministic key derivation |
 | `PrivateKey` / `PublicKey` | Keypair generation, WIF, signing primitives |
 | `Script` | Build P2PKH / P2SH / multisig scripts |
-| `Message` | Sign and verify messages |
+| `Message` | Sign and verify messages with chain-specific magic bytes |
 | `Mnemonic` | BIP39 mnemonic phrases and seed derivation |
-| `Networks` | Livenet / testnet configuration |
+| `Networks` | Livenet / testnet configuration for the active chain |
 | `ProRegTxPayload` | Masternode provider registration payload |
 
 ## Documentation

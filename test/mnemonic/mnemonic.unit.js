@@ -6,7 +6,7 @@
 var chai = require('chai');
 var should = chai.should();
 
-var Mnemonic = require('../../index').Mnemonic;
+var Mnemonic = require('../_setup').Mnemonic;
 var errors = require('../../lib/mnemonic/errors');
 var bip39_vectors = require('./data/fixtures.json');
 

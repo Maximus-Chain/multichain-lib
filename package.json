@@ -1,11 +1,11 @@
 {
-  "name": "@maximus-chain/maximus-lib",
+  "name": "@maximus-chain/multichain-lib",
   "version": "1.1.0",
-  "description": "A pure and powerful JavaScript library for MaximusChain.",
+  "description": "A multi-chain cryptocurrency primitives library. Built-in support for MaximusChain; register custom chains.",
   "author": "MaximusChain",
   "main": "index.js",
-  "module": "dist/maximus-lib.mjs",
-  "unpkg": "dist/maximus-lib.min.js",
+  "module": "dist/multichain-lib.mjs",
+  "unpkg": "dist/multichain-lib.min.js",
   "scripts": {
     "prepublishOnly": "npm run build",
     "lint": "eslint .",
@@ -28,6 +28,7 @@
     "index.d.ts"
   ],
   "keywords": [
+    "multichain",
     "maximuschain",
     "maximus",
     "transaction",
@@ -44,13 +45,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Maximus-Chain/maximus-lib.git"
+    "url": "https://github.com/Maximus-Chain/multichain-lib.git"
   },
   "types": "index.d.ts",
   "bugs": {
-    "url": "https://github.com/Maximus-Chain/maximus-lib/issues"
+    "url": "https://github.com/Maximus-Chain/multichain-lib/issues"
   },
-  "homepage": "https://github.com/Maximus-Chain/maximus-lib",
+  "homepage": "https://github.com/Maximus-Chain/multichain-lib",
   "dependencies": {
     "@dashevo/bls": "^1.3.6",
     "@dashevo/x11-hash-js": "^1.0.2",
@@ -101,6 +102,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Maximus-Chain/maximus-lib.git"
+    "url": "git+https://github.com/Maximus-Chain/multichain-lib.git"
   }
 }

@@ -5,7 +5,7 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     include: ['test/**/*.js'],
-    exclude: ['**/fixtures/**', '**/data/**', '**/browser*.spec.js', '**/browser*.e2e.spec.js', 'setup-require.js'],
+    exclude: ['**/fixtures/**', '**/data/**', '**/browser*.spec.js', '**/browser*.e2e.spec.js', 'setup-require.js', '**/_setup.js'],
     testTimeout: 30000,
     hookTimeout: 30000,
     // Use forks pool for better compatibility with crypto modules

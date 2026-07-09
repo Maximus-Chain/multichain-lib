@@ -1,5 +1,5 @@
 /**
- * Browser tests for maximus-lib
+ * Browser tests for multichain-lib
  *
  * This file contains tests that run in the browser using Vitest + Playwright.
  * Tests use ESM syntax (import/export).

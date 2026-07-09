@@ -7,7 +7,7 @@ var chai = require('chai');
 var should = chai.should();
 var expect = chai.expect;
 
-var bitcore = require('../../index.js');
+var bitcore = require('../_setup');
 var UnspentOutput = bitcore.Transaction.UnspentOutput;
 
 describe('UnspentOutput', function () {

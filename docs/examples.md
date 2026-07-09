@@ -1,46 +1,59 @@
-# MaximusChain Library — Examples
+# Multichain Library — Examples
 
-All examples assume you are using `maximus` from `@maximus-chain/maximus-lib`.
+All examples use the multi-chain factory pattern. Each chain has its own isolated library instance.
 
 ```javascript
-const maximus = require('@maximus-chain/maximus-lib');
+const multichain = require('@maximus-chain/multichain-lib');
+const { create, registerChain, chains, registerAlgorithm, algorithms } = multichain;
+```
+
+## List available chains and algorithms
+
+```javascript
+console.log('Built-in chains:', chains());    // ['maximus']
+console.log('Registered algorithms:', algorithms()); // [] before any chain is created
+```
+
+## Create a built-in chain (MaximusChain)
+
+```javascript
+const maximus = create('maximus');
 const { Address, Unit, Transaction, Script, Message, PrivateKey, HDPrivateKey, Mnemonic, Networks, HDPublicKey, ProRegTxPayload } = maximus;
 ```
 
 ## Convert between BTC and satoshis
 
 ```javascript
-const sats = Unit.fromBTC(1.3).toSatoshis();
-const btc = Unit.fromSatoshis(150000).toBTC();
+const sats = maximus.Unit.fromBTC(1.3).toSatoshis();
+const btc = maximus.Unit.fromSatoshis(150000).toBTC();
 ```
 
 ## Create and save a Private Key
 
 ```javascript
-const privateKey = new PrivateKey('testnet');
+const privateKey = new maximus.PrivateKey('testnet');
 const wif = privateKey.toWIF();
-const imported = PrivateKey.fromWIF(wif);
+const imported = maximus.PrivateKey.fromWIF(wif);
 ```
 
 ## Create an Address
 
 ```javascript
 const address = privateKey.toAddress();
-console.log(address.toString()); // 'T...' on testnet, 'M...' on livenet
+console.log(address.toString()); // MaximusChain testnet address
 ```
 
 ## Validate an Address
 
 ```javascript
-Address.isValid('TNrWwZmTW9FQroUq3ohyT4RbJUrJ7JoRMd', 'testnet'); // true
-Address.isValid('MNxR2aqgyrKBrf3wUKYvyKQj9hTZ3SZMV7', 'livenet'); // true
+maximus.Address.isValid('TNrWwZmTW9FQroUq3ohyT4RbJUrJ7JoRMd', 'testnet');
 ```
 
 ## HD Wallet — derive from mnemonic
 
 ```javascript
-const mnemonic = new Mnemonic('praise sewer someone ladder aunt simple grit similar garlic quality know own');
-const hdPrivateKey = HDPrivateKey.fromSeed(mnemonic.toSeed(), Networks.testnet);
+const mnemonic = new maximus.Mnemonic('praise sewer someone ladder aunt simple grit similar garlic quality know own');
+const hdPrivateKey = maximus.HDPrivateKey.fromSeed(mnemonic.toSeed(), maximus.Networks.testnet);
 const derived = hdPrivateKey.deriveChild("m/44'/1'/0'/0/0");
 const address = derived.privateKey.toAddress();
 ```
@@ -48,7 +61,7 @@ const address = derived.privateKey.toAddress();
 ## HD Wallet — derive child from xpub
 
 ```javascript
-const hdPublicKey = new HDPublicKey('tpubD...');
+const hdPublicKey = new maximus.HDPublicKey('tpubD...');
 const child = hdPublicKey.deriveChild("m/1/100", false);
 const publicKey = child.publicKey;
 ```
@@ -57,28 +70,28 @@ const publicKey = child.publicKey;
 
 ```javascript
 const publicKeys = [
-  new PublicKey('02...'),
-  new PublicKey('02...'),
-  new PublicKey('02...'),
+  new maximus.PublicKey('02...'),
+  new maximus.PublicKey('02...'),
+  new maximus.PublicKey('02...'),
 ];
-const redeemScript = Script.buildMultisigOut(publicKeys, 2);
+const redeemScript = maximus.Script.buildMultisigOut(publicKeys, 2);
 const scriptHashOut = redeemScript.toScriptHashOut();
-const multisigAddress = Address.payingTo(scriptHashOut, Networks.livenet);
+const multisigAddress = maximus.Address.payingTo(scriptHashOut, maximus.Networks.livenet);
 ```
 
 ## Create and sign a Transaction
 
 ```javascript
-const privateKey = new PrivateKey('testnet');
+const privateKey = new maximus.PrivateKey('testnet');
 const utxo = {
   txId: '115e8f72f39fad874cfab0deed11a80f24f967a84079fb56ddf53ea02e308986',
   outputIndex: 0,
   address: privateKey.toAddress().toString(),
-  script: Script.buildPublicKeyHashOut(privateKey.toAddress()).toHex(),
+  script: maximus.Script.buildPublicKeyHashOut(privateKey.toAddress()).toHex(),
   satoshis: 50000,
 };
 
-const transaction = new Transaction()
+const transaction = new maximus.Transaction()
   .from(utxo)
   .to('TNrWwZmTW9FQroUq3ohyT4RbJUrJ7JoRMd', 15000)
   .feePerKb(1000)
@@ -91,21 +104,23 @@ console.log(transaction.serialize());
 ## Create a special ProRegTx
 
 ```javascript
-const payload = new ProRegTxPayload();
+const payload = new maximus.ProRegTxPayload();
 payload.version = 1;
-payload.type = 1; // masternode type
+payload.type = 1;
 payload.mode = 0;
-payload.collateralHash = '0000000000000000000000000000000000000000000000000000000000000000';
+payload.collateralHash = '0'.repeat(64);
 payload.collateralIndex = 0;
 payload.service = '1.2.3.4:9999';
 payload.keyIDOwner = '0'.repeat(40);
 payload.pubKeyOperator = '0'.repeat(96);
 payload.keyIDVoting = '0'.repeat(40);
 payload.operatorReward = 0;
-payload.scriptPayout = Script.buildPublicKeyHashOut(new Address(payoutAddress, Networks.livenet)).toHex();
+payload.scriptPayout = maximus.Script.buildPublicKeyHashOut(
+  new maximus.Address(payoutAddress, maximus.Networks.livenet)
+).toHex();
 payload.inputsHash = '0'.repeat(64);
 
-const tx = new Transaction()
+const tx = new maximus.Transaction()
   .from(utxos)
   .to(collateralAddress, 1000000000)
   .feePerKb(1000)
@@ -119,16 +134,69 @@ tx.type = 1;
 ## Sign and verify a message
 
 ```javascript
-const message = new Message('Welcome to MaximusChain');
+const message = new maximus.Message('Welcome to Multichain');
 const signature = message.sign(privateKey);
-const verified = message.verify(privateKey.toAddress(), signature); // true
+const verified = message.verify(privateKey.toAddress(), signature);
 ```
 
-## Networks
+## Networks (active chain only)
 
 ```javascript
-Networks.setActive('testnet');
-const active = Networks.defaultNetwork; // current network
-const livenet = Networks.livenet;
-const testnet = Networks.testnet;
+maximus.Networks.setActive('testnet');
+console.log(maximus.Networks.defaultNetwork.name); // 'testnet'
+console.log(maximus.Networks.livenet.name);        // 'livenet'
+console.log(maximus.Networks.testnet.name);        // 'testnet'
+```
+
+## Register a custom chain
+
+```javascript
+multichain.registerChain('mychain', {
+  name: 'mychain',
+  messageMagic: 'MyChain Signed Message:\n',
+  algorithms: {
+    sha256d: (buf) => {
+      const crypto = require('crypto');
+      return crypto
+        .createHash('sha256')
+        .update(crypto.createHash('sha256').update(buf).digest())
+        .digest();
+    },
+  },
+  livenet: {
+    name: 'livenet',
+    alias: ['mainnet'],
+    pubkeyhash: 0x00,
+    privatekey: 0x80,
+    scripthash: 0x05,
+    xpubkey: 0x0488b21e,
+    xprivkey: 0x0488ade4,
+    networkMagic: 0x0f0f0f0f,
+    port: 8333,
+    dnsSeeds: [],
+    hashFunction: 'sha256d',
+  },
+  testnet: {
+    name: 'testnet',
+    pubkeyhash: 0x6f,
+    privatekey: 0xef,
+    scripthash: 0xc4,
+    xpubkey: 0x043587cf,
+    xprivkey: 0x04358394,
+    networkMagic: 0x0b0b0b0b,
+    port: 18333,
+    dnsSeeds: [],
+    hashFunction: 'sha256d',
+  },
+});
+
+const mine = multichain.create('mychain');
+const addr = new mine.Address(pubkeyHash, 'livenet');
+```
+
+## Register a custom hash algorithm globally
+
+```javascript
+multichain.registerAlgorithm('myalgo', (buf) => Buffer.from(myHash(buf)));
+console.log('Algorithms:', multichain.algorithms());
 ```

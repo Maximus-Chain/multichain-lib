@@ -24,8 +24,8 @@ const umdConfig = {
   ],
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'maximus-lib.min.js',
-    library: 'maximus',
+    filename: 'multichain-lib.min.js',
+    library: 'multichain',
     libraryTarget: 'umd',
   },
   optimization: {
@@ -65,7 +65,7 @@ const esmConfig = {
   ],
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'maximus-lib.mjs',
+    filename: 'multichain-lib.mjs',
     library: {
       type: 'module',
     },

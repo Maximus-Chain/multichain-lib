@@ -5,7 +5,7 @@
 
 var should = require('chai').should();
 
-var bitcore = require('../../index.js');
+var bitcore = require('../_setup');
 var errors = bitcore.errors;
 var $ = bitcore.util.preconditions;
 var PrivateKey = bitcore.PrivateKey;

@@ -5,7 +5,7 @@
 
 var chai = require('chai');
 var should = chai.should();
-var Transaction = require('../../lib/transaction');
+var Transaction = require('../_setup').Transaction;
 
 var vectors_valid = require('../data/bitcoind/tx_valid.json');
 var vectors_invalid = require('../data/bitcoind/tx_invalid.json');

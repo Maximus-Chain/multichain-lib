@@ -3,7 +3,7 @@
 
 'use strict';
 
-var bitcore = require('../../index.js');
+var bitcore = require('../_setup');
 var should = require('chai').should();
 var BufferWriter = bitcore.encoding.BufferWriter;
 var BufferReader = bitcore.encoding.BufferReader;

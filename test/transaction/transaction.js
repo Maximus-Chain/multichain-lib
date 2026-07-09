@@ -10,7 +10,7 @@ var expect = require('chai').expect;
 var _ = require('lodash');
 var sinon = require('sinon');
 
-var bitcore = require('../../index.js');
+var bitcore = require('../_setup');
 var BN = bitcore.crypto.BN;
 var Transaction = bitcore.Transaction;
 var Input = bitcore.Transaction.Input;

@@ -3,7 +3,7 @@
 
 'use strict';
 
-var bitcore = require('../../index.js');
+var bitcore = require('../_setup');
 var Random = bitcore.crypto.Random;
 var should = require('chai').should();
 var expect = require('chai').expect;

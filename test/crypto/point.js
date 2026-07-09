@@ -4,7 +4,7 @@
 'use strict';
 
 var should = require('chai').should();
-var bitcore = require('../../index.js');
+var bitcore = require('../_setup');
 var Point = bitcore.crypto.Point;
 var BN = bitcore.crypto.BN;
 

@@ -1,7 +1,7 @@
 /* eslint-disable */
 // TODO: Remove previous line and work through linting issues at next edit
 var expect = require('chai').expect;
-var merkleTreeUtil = require('../../lib/util/bitarray');
+var merkleTreeUtil = require('../_setup').util.bitarray;
 
 describe('BitArray', function () {
   describe('.convertBitArrayToUInt8Array', function () {

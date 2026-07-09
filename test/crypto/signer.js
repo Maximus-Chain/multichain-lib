@@ -1,8 +1,8 @@
 /* eslint-disable */
 var chai = require('chai');
-var Signer = require('../../lib/crypto/signer');
-var PrivateKey = require('../../lib/privatekey');
-var PublicKey = require('../../lib/publickey');
+var Signer = require('../_setup').crypto.Signer;
+var PrivateKey = require('../_setup').PrivateKey;
+var PublicKey = require('../_setup').PublicKey;
 
 var expect = chai.expect;
 

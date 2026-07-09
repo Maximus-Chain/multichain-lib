@@ -4,7 +4,7 @@
 'use strict';
 
 var expect = require('chai').expect;
-var bls = require('../../lib/crypto/bls');
+var bls = require('../_setup').crypto.BLS;
 
 describe('bls', () => {
   it('should return bls-signatures library', () => {

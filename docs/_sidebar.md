@@ -25,4 +25,4 @@
   - [Transaction](usage/transaction.md)
   - [Transaction.Input](usage/transaction_input.md)
   - [Transaction.Output](usage/transaction_output.md)
-- [License](https://github.com/Maximus-Chain/maximus-lib/blob/master/LICENSE)
+- [License](https://github.com/Maximus-Chain/multichain-lib/blob/master/LICENSE)

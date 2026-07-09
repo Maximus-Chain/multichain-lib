@@ -3,62 +3,127 @@
 
 'use strict';
 
-var bitcore = module.exports;
+var multichain = module.exports;
 
-bitcore.version = 'v' + require('./package.json').version;
-bitcore.versionGuard = function (version) {
+multichain.version = 'v' + require('./package.json').version;
+
+multichain.versionGuard = function (version) {
   if (version !== undefined) {
     var message =
-      'More than one instance of dashcore-lib found. ' +
-      'Please make sure that you are not mixing instances of classes of the different versions of dashcore.';
+      'More than one instance of multichain-lib found. ' +
+      'Please make sure that you are not mixing instances of classes of different versions of multichain-lib.';
     console.warn(message);
   }
 };
-bitcore.versionGuard(global._dashcore);
-global._dashcore = bitcore.version;
+multichain.versionGuard(global._multichain);
+global._multichain = multichain.version;
 
-bitcore.crypto = {};
-bitcore.crypto.BN = require('./lib/crypto/bn');
-bitcore.crypto.ECDSA = require('./lib/crypto/ecdsa');
-bitcore.crypto.Hash = require('./lib/crypto/hash');
-bitcore.crypto.Random = require('./lib/crypto/random');
-bitcore.crypto.Point = require('./lib/crypto/point');
-bitcore.crypto.Signature = require('./lib/crypto/signature');
-bitcore.Signer = require('./lib/crypto/signer');
+var Hash = require('./lib/crypto/hash');
 
-bitcore.encoding = {};
-bitcore.encoding.Base58 = require('./lib/encoding/base58');
-bitcore.encoding.Base58Check = require('./lib/encoding/base58check');
-bitcore.encoding.BufferReader = require('./lib/encoding/bufferreader');
-bitcore.encoding.BufferWriter = require('./lib/encoding/bufferwriter');
-bitcore.encoding.Varint = require('./lib/encoding/varint');
+var chainsRegistry = {};
 
-bitcore.util = {};
-bitcore.util.buffer = require('./lib/util/buffer');
-bitcore.util.js = require('./lib/util/js');
-bitcore.util.preconditions = require('./lib/util/preconditions');
+function loadBuiltInChain(name) {
+  chainsRegistry[name] = require('./lib/chains/' + name);
+}
 
-bitcore.errors = require('./lib/errors');
+['maximus'].forEach(loadBuiltInChain);
 
-bitcore.Opcode = require('./lib/opcode');
+multichain.chains = function () {
+  return Object.keys(chainsRegistry);
+};
 
-bitcore.Address = require('./lib/address');
-bitcore.HDPrivateKey = require('./lib/hdprivatekey.js');
-bitcore.HDPublicKey = require('./lib/hdpublickey.js');
-bitcore.Networks = require('./lib/networks');
-bitcore.PrivateKey = require('./lib/privatekey');
-bitcore.PublicKey = require('./lib/publickey');
-bitcore.Script = require('./lib/script');
-bitcore.Transaction = require('./lib/transaction');
-bitcore.Unit = require('./lib/unit');
-bitcore.Message = require('./lib/message');
-bitcore.Mnemonic = require('./lib/mnemonic');
+multichain.registerChain = function (name, config) {
+  if (!config || !config.livenet || !config.testnet) {
+    throw new Error('Chain config must include livenet and testnet');
+  }
+  chainsRegistry[name] = config;
+};
 
-bitcore.deps = {};
-bitcore.deps.bnjs = require('bn.js');
-bitcore.deps.bs58 = require('bs58');
-bitcore.deps.Buffer = Buffer;
-bitcore.deps.elliptic = require('elliptic');
-bitcore.deps._ = require('lodash');
+multichain.registerAlgorithm = Hash.registerAlgorithm;
+multichain.algorithms = Hash.listAlgorithms;
 
-bitcore.Transaction.sighash = require('./lib/transaction/sighash');
+var createNetworks = require('./lib/networks').create;
+var context = require('./lib/_context');
+
+multichain.create = function (chainName) {
+  var config = chainsRegistry[chainName];
+  if (!config) {
+    throw new Error(
+      'Unknown chain: "' +
+        chainName +
+        '". Available: ' +
+        Object.keys(chainsRegistry).join(', ')
+    );
+  }
+
+  if (config.algorithms) {
+    Object.keys(config.algorithms).forEach(function (name) {
+      Hash.registerAlgorithm(name, config.algorithms[name]);
+    });
+  }
+
+  var Networks = createNetworks();
+  Networks.add(config.livenet);
+  Networks.add(config.testnet, {
+    noStaticNetworkMagic: true,
+    noStaticPort: true,
+    noStaticDnsSeeds: true,
+  });
+  Networks.setActive('livenet');
+
+  context.set(Networks, chainName);
+
+  var cryptoNs = {
+    BN: require('./lib/crypto/bn'),
+    ECDSA: require('./lib/crypto/ecdsa'),
+    Hash: require('./lib/crypto/hash'),
+    Random: require('./lib/crypto/random'),
+    Point: require('./lib/crypto/point'),
+    Signature: require('./lib/crypto/signature'),
+    BLS: require('./lib/crypto/bls'),
+  };
+  cryptoNs.Signer = require('./lib/crypto/signer');
+
+  var encodingNs = {
+    Base58: require('./lib/encoding/base58'),
+    Base58Check: require('./lib/encoding/base58check'),
+    BufferReader: require('./lib/encoding/bufferreader'),
+    BufferWriter: require('./lib/encoding/bufferwriter'),
+    Varint: require('./lib/encoding/varint'),
+  };
+
+  var utilNs = {
+    buffer: require('./lib/util/buffer'),
+    js: require('./lib/util/js'),
+    preconditions: require('./lib/util/preconditions'),
+    bitarray: require('./lib/util/bitarray'),
+    ip: require('./lib/util/ip'),
+    isHashQuorumIndexRequired: require('./lib/util/isHashQuorumIndexRequired'),
+  };
+
+  return {
+    Networks: Networks,
+    chainName: chainName,
+
+    Address: require('./lib/address'),
+    HDPrivateKey: require('./lib/hdprivatekey'),
+    HDPublicKey: require('./lib/hdpublickey'),
+    PrivateKey: require('./lib/privatekey'),
+    PublicKey: require('./lib/publickey'),
+    Script: require('./lib/script'),
+    Transaction: (function () {
+      var T = require('./lib/transaction');
+      if (!T.sighash) T.sighash = require('./lib/transaction/sighash');
+      return T;
+    })(),
+    Unit: require('./lib/unit'),
+    Message: require('./lib/message'),
+    Mnemonic: require('./lib/mnemonic'),
+    Opcode: require('./lib/opcode'),
+
+    crypto: cryptoNs,
+    encoding: encodingNs,
+    util: utilNs,
+    errors: require('./lib/errors'),
+  };
+};

@@ -6,7 +6,7 @@
 var should = require('chai').should();
 var expect = require('chai').expect;
 
-var bitcore = require('../index.js');
+var bitcore = require('./_setup');
 var errors = bitcore.errors;
 var Unit = bitcore.Unit;
 

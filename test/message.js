@@ -7,7 +7,7 @@ var chai = require('chai');
 var expect = chai.expect;
 var should = chai.should();
 
-var bitcore = require('../index.js');
+var bitcore = require('./_setup');
 var Address = bitcore.Address;
 var Signature = bitcore.crypto.Signature;
 var Message = bitcore.Message;

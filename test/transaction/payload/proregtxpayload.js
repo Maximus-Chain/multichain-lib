@@ -6,7 +6,7 @@ var sinon = require('sinon');
 
 var proRegTxFixture = require('../../fixtures/payload/proregtxpayload');
 
-var DashcoreLib = require('../../../index');
+var DashcoreLib = require('../../_setup');
 
 var ProRegTxPayload = DashcoreLib.Transaction.Payload.ProRegTxPayload;
 
