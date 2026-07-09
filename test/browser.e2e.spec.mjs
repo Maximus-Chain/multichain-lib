@@ -19,8 +19,8 @@ test.describe('Browser ESM Bundle Tests', () => {
         exists: typeof m !== 'undefined',
         hasCreate: typeof m.create === 'function',
         hasRegisterChain: typeof m.registerChain === 'function',
-        chains: m.chains(),
-        algorithms: m.algorithms(),
+        chainsContainsMaximus: m.chains().indexOf('maximus') >= 0,
+        algorithmsContainsX11: m.algorithms().indexOf('x11') >= 0,
         hasAddress: typeof lib.Address !== 'undefined',
         hasPublicKey: typeof lib.PublicKey !== 'undefined',
         hasNetworks: typeof lib.Networks !== 'undefined',
@@ -30,8 +30,8 @@ test.describe('Browser ESM Bundle Tests', () => {
     expect(result.exists).toBe(true);
     expect(result.hasCreate).toBe(true);
     expect(result.hasRegisterChain).toBe(true);
-    expect(result.chains).toEqual(['maximus']);
-    expect(result.algorithms).toEqual(['x11']);
+    expect(result.chainsContainsMaximus).toBe(true);
+    expect(result.algorithmsContainsX11).toBe(true);
     expect(result.hasAddress).toBe(true);
     expect(result.hasPublicKey).toBe(true);
     expect(result.hasNetworks).toBe(true);

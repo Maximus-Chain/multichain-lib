@@ -26,7 +26,7 @@ function loadBuiltInChain(name) {
   chainsRegistry[name] = require('./lib/chains/' + name);
 }
 
-['maximus'].forEach(loadBuiltInChain);
+['maximus', 'osmium'].forEach(loadBuiltInChain);
 
 multichain.chains = function () {
   return Object.keys(chainsRegistry);
