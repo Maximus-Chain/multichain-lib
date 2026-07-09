@@ -12,6 +12,7 @@
   - [Unit](core-concepts/unit.md)
   - [UnspentOutput](core-concepts/unspentoutput.md)
 - [Examples](examples.md)
+- [Integrate a new chain](INTEGRATE-CHAIN.md)
 - [Migration Guide](MIGRATION.md)
 - Usage
   - [Address](usage/address.md)
