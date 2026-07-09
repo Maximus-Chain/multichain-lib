@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>maximus-lib ESM Tests</title>
+  </head>
+  <body>
+    <script type="module">
+      // Expose the ESM bundle as window.maximuscore for tests
+      import * as maximus from '/dist/maximus-lib.mjs';
+      window.maximuscore = maximus.default || maximus;
+    </script>
+  </body>
+</html>
