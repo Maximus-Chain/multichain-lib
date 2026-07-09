@@ -12,6 +12,7 @@
   - [Unit](core-concepts/unit.md)
   - [UnspentOutput](core-concepts/unspentoutput.md)
 - [Examples](examples.md)
+- [Migration Guide](MIGRATION.md)
 - Usage
   - [Address](usage/address.md)
   - [HDPrivateKey](usage/hdprivatekey.md)
