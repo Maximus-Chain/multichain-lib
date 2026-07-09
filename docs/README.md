@@ -1,34 +1,100 @@
-## Dashcore-lib
+# MaximusChain Library
 
-[![NPM Version](https://img.shields.io/npm/v/@dashevo/dashcore-lib)](https://www.npmjs.com/package/@dashevo/dashcore-lib)
-[![Build Status](https://github.com/dashevo/dashcore-lib/actions/workflows/test_and_release.yml/badge.svg)](https://github.com/dashevo/dashcore-lib/actions/workflows/test_and_release.yml)
-[![Release Date](https://img.shields.io/github/release-date/dashevo/dashcore-lib)](https://github.com/dashevo/dashcore-lib/releases/latest)
-[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen)](https://github.com/RichardLitt/standard-readme)
+A pure and powerful JavaScript library for MaximusChain.
 
-A pure and powerful JavaScript Dash library.
+MaximusChain is a peer-to-peer platform for the next generation of financial technology. The decentralized nature of the network allows for highly resilient infrastructure.
 
-Dash is a powerful new peer-to-peer platform for the next generation of financial technology. The decentralized nature of the Dash network allows for highly resilient Dash infrastructure, and the developer community needs reliable, open-source tools to implement Dash apps and services.
+## Table of Contents
 
-### Install
+- [Install](#install)
+- [Usage](#usage)
+- [Documentation](#documentation)
+- [License](#license)
 
-### ES5/ES6 via NPM
+## Install
 
-In order to use this library in Node, you will need to add it to your project as a dependency.
+### NodeJS
 
-Having [NodeJS](https://nodejs.org/) installed, just type in your terminal :
+```
+npm install @maximus-chain/maximus-lib
+```
+
+### Browser
+
+#### CDN Standalone
+
+```html
+<script src="https://unpkg.com/@maximus-chain/maximus-lib"></script>
+<script>
+  const { PrivateKey } = maximus;
+  const privateKey = new PrivateKey();
+  const address = privateKey.toAddress().toString();
+  ...
+</script>
+```
+
+#### Building the Browser Bundle
 
 ```sh
-npm install @dashevo/dashcore-lib
+npm run build
 ```
 
-### CDN Standalone
+This will generate a file named `maximus-lib.min.js` in the `dist/` folder.
 
-For browser usage, you can also directly rely on unpkg :
+## Usage
 
+### Browser
+
+```html
+<script src="./dist/maximus-lib.min.js" type="text/javascript"></script>
+<script>
+  const PrivateKey = maximus.PrivateKey;
+  const privateKey = new PrivateKey();
+  const address = privateKey.toAddress().toString();
+</script>
 ```
-<script src="https://unpkg.com/@dashevo/dashcore-lib"></script>
+
+### Development & Tests
+
+```sh
+git clone https://github.com/Maximus-Chain/maximus-lib
+cd maximus-lib
+npm install
 ```
 
-## Licence
+Run all the tests:
 
-[MIT](https://github.com/dashevo/dashcore-lib/blob/master/LICENCE.md) © Dash Core Group, Inc.
+```sh
+npm test
+```
+
+You can also run just the Node.js tests with `npm run test:node`, just the browser tests with `npm run test:browser` or run a test coverage report with `npm run coverage`.
+
+## Supported API
+
+The library exposes the components required to build, sign and broadcast MaximusChain transactions, manage addresses, derive HD keys, encode messages, and work with masternode provider registration payloads.
+
+| Component | Description |
+|-----------|-------------|
+| `Address` | Parse, validate and generate MAXI/TMAXI addresses |
+| `Unit` | Convert between BTC and satoshis |
+| `Transaction` | Build, sign, serialize and deserialize transactions, including special ProRegTx |
+| `HDPublicKey` / `HDPrivateKey` | BIP32 hierarchical deterministic key derivation |
+| `PrivateKey` / `PublicKey` | Keypair generation, WIF, signing primitives |
+| `Script` | Build P2PKH / P2SH / multisig scripts |
+| `Message` | Sign and verify messages |
+| `Mnemonic` | BIP39 mnemonic phrases and seed derivation |
+| `Networks` | Livenet / testnet configuration |
+| `ProRegTxPayload` | Masternode provider registration payload |
+
+## Documentation
+
+- [Core Concepts](core-concepts/)
+- [Usage Guides](usage/)
+- [Examples](examples.md)
+
+## License
+
+Code released under [the MIT license](../LICENSE).
+
+Copyright 2026 MaximusChain.

@@ -1,189 +1,134 @@
-# Dashcore examples
+# MaximusChain Library — Examples
 
-## Create and Save a Private Key
+All examples assume you are using `maximus` from `@maximus-chain/maximus-lib`.
 
 ```javascript
-var privateKey = new bitcore.PrivateKey();
+const maximus = require('@maximus-chain/maximus-lib');
+const { Address, Unit, Transaction, Script, Message, PrivateKey, HDPrivateKey, Mnemonic, Networks, HDPublicKey, ProRegTxPayload } = maximus;
+```
 
-var exported = privateKey.toWIF();
-// e.g. L3T1s1TYP9oyhHpXgkyLoJFGniEgkv2Jhi138d7R2yJ9F4QdDU2m
-var imported = bitcore.PrivateKey.fromWIF(exported);
-var hexa = privateKey.toString();
-// e.g. 'b9de6e778fe92aa7edb69395556f843f1dce0448350112e14906efc2a80fa61a'
+## Convert between BTC and satoshis
+
+```javascript
+const sats = Unit.fromBTC(1.3).toSatoshis();
+const btc = Unit.fromSatoshis(150000).toBTC();
+```
+
+## Create and save a Private Key
+
+```javascript
+const privateKey = new PrivateKey('testnet');
+const wif = privateKey.toWIF();
+const imported = PrivateKey.fromWIF(wif);
 ```
 
 ## Create an Address
 
 ```javascript
-var address = privateKey.toAddress();
+const address = privateKey.toAddress();
+console.log(address.toString()); // 'T...' on testnet, 'M...' on livenet
 ```
 
-## Create a Multisig Address
+## Validate an Address
 
 ```javascript
-// Build a 2-of-3 address from public keys
-var p2shAddress = new bitcore.Address([publicKey1, publicKey2, publicKey3], 2);
+Address.isValid('TNrWwZmTW9FQroUq3ohyT4RbJUrJ7JoRMd', 'testnet'); // true
+Address.isValid('MNxR2aqgyrKBrf3wUKYvyKQj9hTZ3SZMV7', 'livenet'); // true
 ```
 
-## Request a Payment
+## HD Wallet — derive from mnemonic
 
 ```javascript
-var paymentInfo = {
-  address: '1DNtTk4PUCGAdiNETAzQFWZiy2fCHtGnPx',
-  amount: 120000, //satoshis
-};
-var uri = new bitcore.URI(paymentInfo).toString();
+const mnemonic = new Mnemonic('praise sewer someone ladder aunt simple grit similar garlic quality know own');
+const hdPrivateKey = HDPrivateKey.fromSeed(mnemonic.toSeed(), Networks.testnet);
+const derived = hdPrivateKey.deriveChild("m/44'/1'/0'/0/0");
+const address = derived.privateKey.toAddress();
 ```
 
-## Create a Transaction
+## HD Wallet — derive child from xpub
 
 ```javascript
-var transaction = new Transaction()
-  .from(utxos) // Feed information about what unspent outputs one can use
-  .to(address, amount) // Add an output with the given amount of satoshis
-  .change(address) // Sets up a change address where the rest of the funds will go
-  .sign(privkeySet); // Signs all the inputs it can
+const hdPublicKey = new HDPublicKey('tpubD...');
+const child = hdPublicKey.deriveChild("m/1/100", false);
+const publicKey = child.publicKey;
 ```
 
-## Connect to the Network
+## Build a 2-of-3 multisig P2SH address
 
 ```javascript
-var peer = new Peer('5.9.85.34');
-
-peer.on('inv', function (message) {
-  // new inventory
-});
-
-peer.connect();
+const publicKeys = [
+  new PublicKey('02...'),
+  new PublicKey('02...'),
+  new PublicKey('02...'),
+];
+const redeemScript = Script.buildMultisigOut(publicKeys, 2);
+const scriptHashOut = redeemScript.toScriptHashOut();
+const multisigAddress = Address.payingTo(scriptHashOut, Networks.livenet);
 ```
 
-## Generate a random address
+## Create and sign a Transaction
 
 ```javascript
-var privateKey = new bitcore.PrivateKey();
-
-var address = privateKey.toAddress();
-```
-
-## Generate an address from a SHA256 hash
-
-```javascript
-var value = Buffer.from('correct horse battery staple');
-var hash = bitcore.crypto.Hash.sha256(value);
-var bn = bitcore.crypto.BN.fromBuffer(hash);
-
-var address = new bitcore.PrivateKey(bn).toAddress();
-```
-
-## Import an address via WIF
-
-```javascript
-var wif = 'Kxr9tQED9H44gCmp6HAdmemAzU3n84H3dGkuWTKvE23JgHMW8gct';
-
-var address = new bitcore.PrivateKey(wif).toAddress();
-```
-
-## Create a Transaction
-
-```javascript
-var privateKey = new bitcore.PrivateKey(
-  'L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy'
-);
-var utxo = {
+const privateKey = new PrivateKey('testnet');
+const utxo = {
   txId: '115e8f72f39fad874cfab0deed11a80f24f967a84079fb56ddf53ea02e308986',
   outputIndex: 0,
-  address: '17XBj6iFEsf8kzDMGQk5ghZipxX49VXuaV',
-  script: '76a91447862fe165e6121af80d5dde1ecb478ed170565b88ac',
+  address: privateKey.toAddress().toString(),
+  script: Script.buildPublicKeyHashOut(privateKey.toAddress()).toHex(),
   satoshis: 50000,
 };
 
-var transaction = new bitcore.Transaction()
+const transaction = new Transaction()
   .from(utxo)
-  .to('1Gokm82v6DmtwKEB8AiVhm82hyFSsEvBDK', 15000)
+  .to('TNrWwZmTW9FQroUq3ohyT4RbJUrJ7JoRMd', 15000)
+  .feePerKb(1000)
+  .change(privateKey.toAddress())
   .sign(privateKey);
+
+console.log(transaction.serialize());
 ```
 
-## Sign a Bitcoin message
+## Create a special ProRegTx
 
 ```javascript
-var Message = require('bitcore-message');
+const payload = new ProRegTxPayload();
+payload.version = 1;
+payload.type = 1; // masternode type
+payload.mode = 0;
+payload.collateralHash = '0000000000000000000000000000000000000000000000000000000000000000';
+payload.collateralIndex = 0;
+payload.service = '1.2.3.4:9999';
+payload.keyIDOwner = '0'.repeat(40);
+payload.pubKeyOperator = '0'.repeat(96);
+payload.keyIDVoting = '0'.repeat(40);
+payload.operatorReward = 0;
+payload.scriptPayout = Script.buildPublicKeyHashOut(new Address(payoutAddress, Networks.livenet)).toHex();
+payload.inputsHash = '0'.repeat(64);
 
-var privateKey = new bitcore.PrivateKey(
-  'L23PpjkBQqpAF4vbMHNfTZAb3KFPBSawQ7KinFTzz7dxq6TZX8UA'
-);
-var message = new Message('This is an example of a signed message.');
+const tx = new Transaction()
+  .from(utxos)
+  .to(collateralAddress, 1000000000)
+  .feePerKb(1000)
+  .change(changeAddress)
+  .setExtraPayload(payload);
 
-var signature = message.sign(privateKey);
+tx.version = 3;
+tx.type = 1;
 ```
 
-## Verify a Bitcoin message
+## Sign and verify a message
 
 ```javascript
-var Message = require('bitcore-message');
-
-var address = '13Js7D3q4KvfSqgKN8LpNq57gcahrVc5JZ';
-var signature =
-  'IBOvIfsAs/da1e36W8kw1cQOPqPVXCW5zJgNQ5kI8m57FycZXdeFmeyoIqJSREzE4W7vfDmdmPk0HokuJPvgPPE=';
-
-var verified = new Message('This is an example of a signed message.').verify(
-  address,
-  signature
-);
+const message = new Message('Welcome to MaximusChain');
+const signature = message.sign(privateKey);
+const verified = message.verify(privateKey.toAddress(), signature); // true
 ```
 
-## Create an OP RETURN transaction
+## Networks
 
 ```javascript
-var privateKey = new bitcore.PrivateKey(
-  'L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy'
-);
-var utxo = {
-  txId: '115e8f72f39fad874cfab0deed11a80f24f967a84079fb56ddf53ea02e308986',
-  outputIndex: 0,
-  address: '17XBj6iFEsf8kzDMGQk5ghZipxX49VXuaV',
-  script: '76a91447862fe165e6121af80d5dde1ecb478ed170565b88ac',
-  satoshis: 50000,
-};
-
-var transaction = new bitcore.Transaction()
-  .from(utxo)
-  .addData('bitcore rocks') // Add OP_RETURN data
-  .sign(privateKey);
-```
-
-## Create a 2-of-3 multisig P2SH address
-
-```javascript
-var publicKeys = [
-  '026477115981fe981a6918a6297d9803c4dc04f328f22041bedff886bbc2962e01',
-  '02c96db2302d19b43d4c69368babace7854cc84eb9e061cde51cfa77ca4a22b8b9',
-  '03c6103b3b83e4a24a0e33a4df246ef11772f9992663db0c35759a5e2ebf68d8e9',
-];
-var requiredSignatures = 2;
-
-var address = new bitcore.Address(publicKeys, requiredSignatures);
-```
-
-## Spend from a 2-of-2 multisig P2SH address
-
-```javascript
-var privateKeys = [
-  new bitcore.PrivateKey('91avARGdfge8E4tZfYLoxeJ5sGBdNJQH4kvjJoQFacbgwmaKkrx'),
-  new bitcore.PrivateKey('91avARGdfge8E4tZfYLoxeJ5sGBdNJQH4kvjJoQFacbgww7vXtT'),
-];
-var publicKeys = privateKeys.map(bitcore.PublicKey);
-var address = new bitcore.Address(publicKeys, 2); // 2 of 2
-
-var utxo = {
-  txId: '153068cdd81b73ec9d8dcce27f2c77ddda12dee3db424bff5cafdbe9f01c1756',
-  outputIndex: 0,
-  address: address.toString(),
-  script: new bitcore.Script(address).toHex(),
-  satoshis: 20000,
-};
-
-var transaction = new bitcore.Transaction()
-  .from(utxo, publicKeys, 2)
-  .to('mtoKs9V381UAhUia3d7Vb9GNak8Qvmcsme', 20000)
-  .sign(privateKeys);
+Networks.setActive('testnet');
+const active = Networks.defaultNetwork; // current network
+const livenet = Networks.livenet;
+const testnet = Networks.testnet;
 ```
