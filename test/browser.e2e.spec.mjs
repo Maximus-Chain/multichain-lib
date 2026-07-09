@@ -8,19 +8,30 @@ test.describe('Browser ESM Bundle Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Load the ESM bundle via a test HTML page served by http-server
     await page.goto('http://localhost:8080/test/browser-test.html');
+    await page.waitForFunction(() => typeof window.multichain !== 'undefined');
   });
 
   test('should load the library successfully', async ({ page }) => {
     const result = await page.evaluate(() => {
+      const m = window.multichain;
+      const lib = m.create('maximus');
       return {
-        exists: typeof maximuscore !== 'undefined',
-        hasAddress: typeof maximuscore.Address !== 'undefined',
-        hasPublicKey: typeof maximuscore.PublicKey !== 'undefined',
-        hasNetworks: typeof maximuscore.Networks !== 'undefined',
+        exists: typeof m !== 'undefined',
+        hasCreate: typeof m.create === 'function',
+        hasRegisterChain: typeof m.registerChain === 'function',
+        chains: m.chains(),
+        algorithms: m.algorithms(),
+        hasAddress: typeof lib.Address !== 'undefined',
+        hasPublicKey: typeof lib.PublicKey !== 'undefined',
+        hasNetworks: typeof lib.Networks !== 'undefined',
       };
     });
 
     expect(result.exists).toBe(true);
+    expect(result.hasCreate).toBe(true);
+    expect(result.hasRegisterChain).toBe(true);
+    expect(result.chains).toEqual(['maximus']);
+    expect(result.algorithms).toEqual(['x11']);
     expect(result.hasAddress).toBe(true);
     expect(result.hasPublicKey).toBe(true);
     expect(result.hasNetworks).toBe(true);
@@ -28,9 +39,10 @@ test.describe('Browser ESM Bundle Tests', () => {
 
   test('should have Networks defined', async ({ page }) => {
     const result = await page.evaluate(() => {
+      const lib = window.multichain.create('maximus');
       return {
-        hasLivenet: typeof maximuscore.Networks.livenet !== 'undefined',
-        hasTestnet: typeof maximuscore.Networks.testnet !== 'undefined',
+        hasLivenet: typeof lib.Networks.livenet !== 'undefined',
+        hasTestnet: typeof lib.Networks.testnet !== 'undefined',
       };
     });
 
@@ -41,7 +53,8 @@ test.describe('Browser ESM Bundle Tests', () => {
   test('should validate a correct livenet address', async ({ page }) => {
     const result = await page.evaluate(() => {
       try {
-        const address = new maximuscore.Address(
+        const lib = window.multichain.create('maximus');
+        const address = new lib.Address(
           'MDPj1iqqCy23rLccUFvgC8HZq41fB8EH4y',
         );
         return {
@@ -60,7 +73,8 @@ test.describe('Browser ESM Bundle Tests', () => {
   test('should throw for invalid address', async ({ page }) => {
     const result = await page.evaluate(() => {
       try {
-        new maximuscore.Address();
+        const lib = window.multichain.create('maximus');
+        new lib.Address();
         return { threw: false };
       } catch (e) {
         return { threw: true, message: e.message };
@@ -72,7 +86,8 @@ test.describe('Browser ESM Bundle Tests', () => {
 
   test('should validate P2PKH addresses', async ({ page }) => {
     const result = await page.evaluate(() => {
-      return maximuscore.Address.isValid(
+      const lib = window.multichain.create('maximus');
+      return lib.Address.isValid(
         'MDPj1iqqCy23rLccUFvgC8HZq41fB8EH4y',
         'livenet',
       );
@@ -83,7 +98,8 @@ test.describe('Browser ESM Bundle Tests', () => {
 
   test('should validate P2SH addresses', async ({ page }) => {
     const result = await page.evaluate(() => {
-      return maximuscore.Address.isValid(
+      const lib = window.multichain.create('maximus');
+      return lib.Address.isValid(
         '3Nzip9rw7pf94n7xdbb2y4EGQgsQu7WyEa',
         'livenet',
       );
@@ -95,7 +111,8 @@ test.describe('Browser ESM Bundle Tests', () => {
   test('should create a public key', async ({ page }) => {
     const result = await page.evaluate(() => {
       try {
-        const pk = new maximuscore.PublicKey(
+        const lib = window.multichain.create('maximus');
+        const pk = new lib.PublicKey(
           '0285e9737a74c30a873f74df05124f2aa6f53042c2fc0a130d6cbd7d16b944b004',
         );
         return {
@@ -116,10 +133,11 @@ test.describe('Browser ESM Bundle Tests', () => {
   test('should derive address from public key', async ({ page }) => {
     const result = await page.evaluate(() => {
       try {
-        const pk = new maximuscore.PublicKey(
+        const lib = window.multichain.create('maximus');
+        const pk = new lib.PublicKey(
           '0285e9737a74c30a873f74df05124f2aa6f53042c2fc0a130d6cbd7d16b944b004',
         );
-        const address = maximuscore.Address.fromPublicKey(pk, 'livenet');
+        const address = lib.Address.fromPublicKey(pk, 'livenet');
         return {
           success: true,
           address: address.toString(),
