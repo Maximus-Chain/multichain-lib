@@ -3,9 +3,28 @@
   "version": "3.0.0",
   "description": "A multi-chain cryptocurrency primitives library. Built-in support for MaximusChain; register custom chains.",
   "author": "MaximusChain",
-  "main": "index.js",
-  "module": "dist/multichain-lib.mjs",
+  "main": "index.cjs",
+  "module": "index.mjs",
   "unpkg": "dist/multichain-lib.min.js",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs",
+      "require": "./index.cjs",
+      "default": "./index.cjs"
+    },
+    "./chains/maximus": {
+      "types": "./typings/chains/maximus.d.ts",
+      "import": "./lib/chains/maximus.js",
+      "require": "./lib/chains/maximus.js"
+    },
+    "./chains/osmium": {
+      "types": "./typings/chains/osmium.d.ts",
+      "import": "./lib/chains/osmium.js",
+      "require": "./lib/chains/osmium.js"
+    }
+  },
+  "types": "index.d.ts",
   "scripts": {
     "prepublishOnly": "npm run build",
     "lint": "eslint .",
@@ -25,7 +44,11 @@
     "examples",
     "lib",
     "typings",
-    "index.d.ts"
+    "index.mjs",
+    "index.cjs",
+    "index.js",
+    "index.d.ts",
+    "package.json"
   ],
   "keywords": [
     "multichain",
@@ -47,7 +70,6 @@
     "type": "git",
     "url": "git+https://github.com/Maximus-Chain/multichain-lib.git"
   },
-  "types": "index.d.ts",
   "bugs": {
     "url": "https://github.com/Maximus-Chain/multichain-lib/issues"
   },

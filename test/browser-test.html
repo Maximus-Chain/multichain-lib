@@ -5,9 +5,25 @@
   </head>
   <body>
     <script type="module">
-      // Expose the ESM bundle as window.multichain for tests
-      import * as multichain from '/dist/multichain-lib.mjs';
-      window.multichain = multichain.default || multichain;
+      // The webpack ESM bundle exposes named exports. We import each
+      // piece of the v3 root API and surface them on window.multichain
+      // so the playwright spec can poke at them.
+      import {
+        create,
+        chains,
+        registerChain,
+        createHashRegistry,
+        version,
+        versionGuard,
+      } from '/dist/multichain-lib.mjs';
+      window.multichain = {
+        create,
+        chains,
+        registerChain,
+        createHashRegistry,
+        version,
+        versionGuard,
+      };
     </script>
   </body>
 </html>

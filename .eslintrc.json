@@ -9,5 +9,20 @@
     "class-methods-use-this": "off",
     "curly": ["error", "all"],
     "func-names": 0
-  }
+  },
+  "overrides": [
+    {
+      "files": ["test/browser.e2e.spec.mjs"],
+      "env": {
+        "browser": true,
+        "es2022": true
+      },
+      "globals": {
+        "window": "readonly"
+      },
+      "rules": {
+        "no-new": "off"
+      }
+    }
+  ]
 }
