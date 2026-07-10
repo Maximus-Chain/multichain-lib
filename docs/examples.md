@@ -3,8 +3,11 @@
 All examples use the multi-chain factory pattern. Each chain has its own isolated library instance.
 
 ```javascript
-const multichain = require('@maximus-chain/multichain-lib');
-const { create, registerChain, chains } = multichain;
+// Node ESM
+import { create, registerChain, chains } from '@maximus-chain/multichain-lib';
+
+// Node CJS
+const { create, registerChain, chains } = require('@maximus-chain/multichain-lib');
 ```
 
 ## List available chains

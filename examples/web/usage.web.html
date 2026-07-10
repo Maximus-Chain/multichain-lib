@@ -2,14 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Title</title>
-    <!--    <script src="https://unpkg.com/@dashevo/dashcore-lib"></script>-->
-    <script src="../../dist/dashcore-lib.min.js"></script>
+    <title>@maximus-chain/multichain-lib browser example</title>
+    <!-- Build the bundle first with `npm run build`, then serve this file
+         from a local web server (e.g. `npx http-server .`). The UMD bundle
+         is at dist/multichain-lib.min.js. -->
+    <script src="../../dist/multichain-lib.min.js"></script>
     <script>
-      const { PrivateKey } = dashcore;
-      const privateKey = new PrivateKey();
+      // The UMD bundle exposes the library as `window.multichain`.
+      const maximus = window.multichain.create('maximus');
+      const privateKey = new maximus.PrivateKey();
       const address = privateKey.toAddress().toString();
-      alert(`New private key generated ${privateKey.toString()}`);
+      alert(`New private key generated\nAddress: ${address}`);
     </script>
   </head>
   <body></body>

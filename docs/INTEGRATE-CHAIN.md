@@ -31,7 +31,7 @@ Both live in `lib/chains/<name>.js`. The library's factory reads them and binds 
 
 The chain is wired into the factory through one of two paths:
 
-- **Built-in**: create `lib/chains/<name>.js`, register it in `index.js`, ship via a PR.
+- **Built-in**: create `lib/chains/<name>.js`, register it in `lib/_create.js`, ship via a PR.
 - **Runtime**: call `multichain.registerChain(name, config)` from the consumer before `multichain.create(name)`.
 
 Both paths use the same configuration shape. The fields below are identical.
@@ -188,10 +188,18 @@ If the chain uses a hash that has no npm package yet (rare), wrap a native or We
    };
    ```
 
-2. Register it in `index.js`:
+2. Register it in `lib/_create.js`:
 
    ```javascript
-   ['maximus', 'mychain'].forEach(loadBuiltInChain);
+   loadBuiltInChain('maximus');
+   loadBuiltInChain('osmium');
+   loadBuiltInChain('mychain');
+   ```
+
+   Or, equivalently:
+
+   ```javascript
+   ['maximus', 'osmium', 'mychain'].forEach(loadBuiltInChain);
    ```
 
 3. Add tests covering at minimum: address generation, message sign/verify, HD derivation, network round-trip.

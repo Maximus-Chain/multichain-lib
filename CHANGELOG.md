@@ -1,5 +1,47 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **ESM named exports.** The webpack ESM bundle (and the Node ESM entry) now
+  expose each piece of the root API as a named export:
+  `create`, `chains`, `registerChain`, `createHashRegistry`, `version`,
+  `versionGuard`. The default export (the namespace as a whole) is still
+  available for backward compatibility. `import { create } from
+  '@maximus-chain/multichain-lib'` now works in any modern bundler.
+- **Subpath exports per built-in chain.**
+  `@maximus-chain/multichain-lib/chains/maximus` and
+  `@maximus-chain/multichain-lib/chains/osmium` expose the chain config
+  objects (the same shape passed to `registerChain`), with TypeScript types
+  narrowed to the chain-specific `ChainLib` (`MaximusChainLib`,
+  `OsmiumChainLib`).
+- **Full TypeScript types for the v3 root API.** `index.d.ts` now declares
+  the real root surface (`create`, `chains`, `registerChain`,
+  `createHashRegistry`, `version`, `versionGuard`) with `create()`
+  overloads so `create('maximus')` returns `MaximusChainLib`,
+  `create('osmium')` returns `OsmiumChainLib`, and `create(<unknown>)`
+  returns the generic `ChainLib`. The pre-v3 named-class exports
+  (`Address`, `Transaction`, etc.) were removed from the type surface
+  since they no longer exist at runtime.
+- **Generic `ChainLib<C extends ChainConfig>` interface.** Reusable code can
+  take `<C extends ChainLib>` (or `ChainLib`) and accept any chain —
+  built-in or custom-registered — without losing type safety inside the
+  body. See `docs/migration/v3.md` for examples.
+- **New browser test** `bundle exposes named ESM exports` in
+  `test/browser.e2e.spec.mjs`. Catches any future regression where the ESM
+  bundle falls back to default-only.
+
+### Fixed
+
+- Pre-existing lint errors from the v3 commit (no-var, global-require,
+  object-shorthand) in `lib/transaction/{index,output,unspentoutput}.js`.
+- Browser end-to-end tests now target the v3 multi-instance isolation
+  property (two `create('maximus')` calls have independent `Networks`,
+  `Address`, and `crypto.Hash`; flipping one does not affect the other).
+- `test/browser-test.html` uses named ESM imports directly, exposing the
+  v2 default-only regression if it ever recurs.
+
 ## 3.0.0
 
 ### Breaking changes
