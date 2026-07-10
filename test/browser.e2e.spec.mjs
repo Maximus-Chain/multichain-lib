@@ -48,7 +48,8 @@ test.describe('Browser ESM Bundle Tests', () => {
     expect(result.hasPublicKey).toBe(true);
     expect(result.hasNetworks).toBe(true);
     // The root module must expose at least these. `versionGuard` is also
-    // expected (CJS `index.js` defines it), so it is included below.
+    // expected — it's defined in `lib/_create.js` and re-exported by both
+    // `index.mjs` and `index.cjs`.
     expect(result.rootKeys).toEqual(
       expect.arrayContaining([
         'create',

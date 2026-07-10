@@ -6,7 +6,6 @@ import { PublicKey } from '../PublicKey';
 import { Output } from './Output';
 import { Signature } from '../crypto/Signature';
 import { AbstractPayload } from './payload/AbstractPayload';
-import { bitcore } from '../bitcore';
 import { TransactionSignature } from './TransactionSignature';
 import { UnspentOutput } from './UnspentOutput';
 import { Payload } from './payload/Payload';
@@ -106,9 +105,9 @@ export class Transaction {
    * broadcast this transaction.
    *
    * @param {Object} opts allows to skip certain tests. {@see Transaction#serialize}
-   * @return {bitcore.Error}
+   * @return {Error}
    */
-  getSerializationError(opts: any): bitcore.Error;
+  getSerializationError(opts: any): Error;
 
   /**
    * Instant send fee is based on the number of inputs, not on the transaction size
@@ -147,8 +146,8 @@ export class Transaction {
    * Add an input to this transaction. This is a high level interface
    * to add an input, for more control, use @{link Transaction#addInput}.
    *
-   * Can receive, as output information, the output of bitcoind's `listunspent` command,
-   * and a slightly fancier format recognized by bitcore:
+   * Can receive, as output information, the output of a daemon's `listunspent`
+   * command, and a slightly fancier format recognized by the library:
    *
    * ```
    * {
@@ -159,8 +158,8 @@ export class Transaction {
    *  satoshis: 1020000
    * }
    * ```
-   * Where `address` can be either a string or a bitcore Address object. The
-   * same is true for `script`, which can be a string or a bitcore Script.
+   * Where `address` can be either a string or an Address instance. The
+   * same is true for `script`, which can be a string or a Script instance.
    *
    * Beware that this resets all the signatures for inputs (in further versions,
    * SIGHASH_SINGLE or SIGHASH_NONE signatures will not be reset).

@@ -1,5 +1,4 @@
 import { Network } from './Network';
-import { bitcore } from './bitcore';
 import { PublicKey } from './PublicKey';
 /**
  * The representation of an hierarchically derived public key.
@@ -104,12 +103,12 @@ export class HDPublicKey {
    * @param {string|Buffer} data - the serialized public key
    * @param {string|Network=} network - optional, if present, checks that the
    *     network provided matches the network serialized.
-   * @return {bitcore.Error|null}
+   * @return {Error|null}
    */
   static getSerializedError(
     data: string | Buffer,
     network: string | Network
-  ): bitcore.Error | null;
+  ): Error | null;
 
   /**
    * Receives a object with buffers in all the properties and populates the
