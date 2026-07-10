@@ -233,14 +233,12 @@ multichain.registerChain('mychain', {
 
 const mine = multichain.create('mychain');
 console.log(mine.Networks.livenet.name); // 'livenet'
-console.log(mine.algorithms());         // ['x11']
+console.log(mine.crypto.Hash.list());   // ['x11']
 ```
 
-The config shape is identical to the built-in path. You can also register custom hash algorithms independently:
-
-```javascript
-multichain.registerAlgorithm('myalgo', (buf) => /* ... */);
-```
+The config shape is identical to the built-in path. Each chain's hash
+registry is isolated from every other chain's — there is no global
+registry to register algorithms on independently of a chain.
 
 ## Full example: Litecoin
 

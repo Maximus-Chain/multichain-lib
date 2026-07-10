@@ -78,7 +78,7 @@ You can also run just the Node.js tests with `npm run test:node`, just the brows
 The library is multi-chain: you specify which chain you want, and it returns an isolated library instance configured for that chain. MaximusChain is registered as a built-in chain.
 
 ```javascript
-const { create, registerChain, chains, algorithms, registerAlgorithm } = require('@maximus-chain/multichain-lib');
+const { create, registerChain, chains } = require('@maximus-chain/multichain-lib');
 
 // Built-in chain (MaximusChain)
 const maximus = create('maximus');

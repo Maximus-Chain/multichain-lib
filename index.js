@@ -39,12 +39,23 @@ multichain.registerChain = function (name, config) {
   chainsRegistry[name] = config;
 };
 
-multichain.registerAlgorithm = Hash.registerAlgorithm;
-multichain.algorithms = Hash.listAlgorithms;
-
 var createNetworks = require('./lib/networks').create;
-var context = require('./lib/_context');
 
+/**
+ * Returns a `ChainLib` for `chainName`: a set of classes (`Address`,
+ * `Script`, `HDPublicKey`, `HDPrivateKey`, `PrivateKey`, `PublicKey`,
+ * `Message`, `Transaction`, `ProRegTxPayload`, ...) that close over their own
+ * private `Networks` instance and hash registry.
+ *
+ * Two chain-libs — whether for the same chain name or different ones — are
+ * fully isolated from each other: there is no shared, module-level "active
+ * chain" state anywhere in the library, so they can be used concurrently,
+ * including across `await` boundaries, without one call corrupting the
+ * other's state.
+ *
+ * @param {string} chainName
+ * @returns {Object} a ChainLib
+ */
 multichain.create = function (chainName) {
   var config = chainsRegistry[chainName];
   if (!config) {
@@ -56,12 +67,6 @@ multichain.create = function (chainName) {
     );
   }
 
-  if (config.algorithms) {
-    Object.keys(config.algorithms).forEach(function (name) {
-      Hash.registerAlgorithm(name, config.algorithms[name]);
-    });
-  }
-
   var Networks = createNetworks();
   Networks.add(config.livenet);
   Networks.add(config.testnet, {
@@ -71,12 +76,52 @@ multichain.create = function (chainName) {
   });
   Networks.setActive('livenet');
 
-  context.set(Networks, chainName);
+  var hashRegistry = Hash.createHashRegistry();
+  if (config.algorithms) {
+    Object.keys(config.algorithms).forEach(function (name) {
+      hashRegistry.register(name, config.algorithms[name]);
+    });
+  }
+
+  var Address = require('./lib/address').createAddressClass(Networks);
+  var Script = require('./lib/script/script').createScriptClass(Networks);
+  Script.Interpreter =
+    require('./lib/script/interpreter').createInterpreterClass(Networks);
+  var HDPublicKey =
+    require('./lib/hdpublickey').createHDPublicKeyClass(Networks);
+  var HDPrivateKey =
+    require('./lib/hdprivatekey').createHDPrivateKeyClass(Networks);
+  var PrivateKey = require('./lib/privatekey').createPrivateKeyClass(Networks);
+  var PublicKey = require('./lib/publickey').createPublicKeyClass(Networks);
+  var Message = require('./lib/message').createMessageClass(Networks);
+
+  var Transaction =
+    require('./lib/transaction/transaction').createTransactionClass(Networks);
+  var TransactionSighash =
+    require('./lib/transaction/sighash').createSighash(Networks);
+  Transaction.sighash = TransactionSighash;
+  Transaction.Sighash = TransactionSighash;
+  Transaction.Input =
+    require('./lib/transaction/input').createInputClasses(Networks);
+  Transaction.Output =
+    require('./lib/transaction/output').createOutputClass(Networks);
+  Transaction.UnspentOutput =
+    require('./lib/transaction/unspentoutput').createUnspentOutputClass(
+      Networks
+    );
+  Transaction.Signature =
+    require('./lib/transaction/signature').createTransactionSignatureClass(
+      Networks
+    );
+
+  var Payload =
+    require('./lib/transaction/payload').createPayloadClass(Networks);
+  Transaction.Payload = Payload;
 
   var cryptoNs = {
     BN: require('./lib/crypto/bn'),
     ECDSA: require('./lib/crypto/ecdsa'),
-    Hash: require('./lib/crypto/hash'),
+    Hash: hashRegistry,
     Random: require('./lib/crypto/random'),
     Point: require('./lib/crypto/point'),
     Signature: require('./lib/crypto/signature'),
@@ -105,20 +150,19 @@ multichain.create = function (chainName) {
     Networks: Networks,
     chainName: chainName,
 
-    Address: require('./lib/address'),
-    HDPrivateKey: require('./lib/hdprivatekey'),
-    HDPublicKey: require('./lib/hdpublickey'),
-    PrivateKey: require('./lib/privatekey'),
-    PublicKey: require('./lib/publickey'),
-    Script: require('./lib/script'),
-    Transaction: (function () {
-      var T = require('./lib/transaction');
-      if (!T.sighash) T.sighash = require('./lib/transaction/sighash');
-      return T;
-    })(),
+    Address: Address,
+    Script: Script,
+    HDPublicKey: HDPublicKey,
+    HDPrivateKey: HDPrivateKey,
+    PrivateKey: PrivateKey,
+    PublicKey: PublicKey,
+    Message: Message,
+
+    Transaction: Transaction,
+    ProRegTxPayload: Payload.ProRegTxPayload,
+
     Unit: require('./lib/unit'),
-    Message: require('./lib/message'),
-    Mnemonic: require('./lib/mnemonic'),
+    Mnemonic: require('./lib/mnemonic').createMnemonicClass(Networks),
     Opcode: require('./lib/opcode'),
 
     crypto: cryptoNs,
@@ -127,3 +171,9 @@ multichain.create = function (chainName) {
     errors: require('./lib/errors'),
   };
 };
+
+/**
+ * Creates a standalone, isolated hash-algorithm registry, independently of
+ * any chain. See `lib/crypto/hash.js`.
+ */
+multichain.createHashRegistry = Hash.createHashRegistry;

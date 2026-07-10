@@ -173,7 +173,7 @@ describe('ECDSA', function () {
       );
       ecdsa.sign();
       ecdsa.sig.i = 0;
-      var pubkey = ecdsa.toPublicKey();
+      var pubkey = ecdsa.toPublicKey(Pubkey);
       pubkey.point.eq(ecdsa.pubkey.point).should.equal(true);
     });
 
@@ -187,7 +187,7 @@ describe('ECDSA', function () {
           'a97877bb1d54d35d189e225c15f6650220278cf15b05ce47fb37d2233802899d94c774d5480bba9f0f2d996baa13370c43'
       );
       ecdsa.sig.i = 0;
-      var pubkey = ecdsa.toPublicKey();
+      var pubkey = ecdsa.toPublicKey(Pubkey);
       pubkey.point.eq(ecdsa.pubkey.point).should.equal(true);
     });
 
@@ -202,7 +202,7 @@ describe('ECDSA', function () {
           'a97877bb1d54d35d189e225c15f665022100d8730ea4fa31b804c82ddcc7fd766269f33a079ea38e012c9238f2e2bcff34fe'
       );
       ecdsa.sig.i = 1;
-      var pubkey = ecdsa.toPublicKey();
+      var pubkey = ecdsa.toPublicKey(Pubkey);
       pubkey.point.eq(ecdsa.pubkey.point).should.equal(true);
     });
   });

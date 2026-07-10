@@ -59,10 +59,16 @@ This will generate a file named `multichain-lib.min.js` in the `dist/` folder.
 
 ### Multi-chain support
 
-The library is multi-chain: you specify which chain you want, and it returns an isolated library instance configured for that chain. MaximusChain is registered as a built-in chain.
+The library is multi-chain: you specify which chain you want, and `create()`
+returns a **fully isolated** library instance configured for that chain —
+there is no shared, module-level "active chain" state anywhere in the
+library. Two chain-libs, whether for the same chain name or different ones,
+never affect each other, so they're safe to use concurrently, including
+across `await` boundaries. MaximusChain and Osmium are registered as built-in
+chains.
 
 ```javascript
-const { create, registerChain, chains, algorithms, registerAlgorithm } = require('@maximus-chain/multichain-lib');
+const { create, registerChain, chains } = require('@maximus-chain/multichain-lib');
 
 // Built-in chain (MaximusChain)
 const maximus = create('maximus');
@@ -78,9 +84,27 @@ registerChain('mychain', {
 });
 const mine = create('mychain');
 
-// Register a custom hash algorithm
-registerAlgorithm('myalgo', (buf) => /* ... */);
+// Two chain-libs are fully independent — safe to use interleaved with
+// awaits, or concurrently from different requests.
+const maximusAddr = new maximus.PrivateKey('livenet').toAddress();
+maximus.Address.isValid(maximusAddr.toString(), 'livenet'); // true
+mine.Address.isValid(maximusAddr.toString(), 'livenet'); // false
+
+// Custom hash algorithms are declared per chain, in the config passed to
+// registerChain() (see above) — there is no global hash-algorithm registry.
+// A standalone, isolated registry can still be created directly if needed:
+const registry = multichain.createHashRegistry();
+registry.register('myalgo', (buf) => /* ... */);
 ```
+
+`create()` returns the same shape regardless of chain (`Address`, `Script`,
+`HDPublicKey`, `HDPrivateKey`, `PrivateKey`, `PublicKey`, `Message`,
+`Transaction`, `ProRegTxPayload`, `Networks`, `crypto`, `encoding`, `util`,
+`errors`, `Unit`, `Mnemonic`, `Opcode`, `chainName`).
+
+See [docs/migration/v3.md](docs/migration/v3.md) if you're upgrading from an
+earlier version that used a shared, non-isolated `create()` or the additive
+`createIsolated()` API.
 
 ### Development & Tests
 

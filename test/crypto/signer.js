@@ -23,7 +23,7 @@ describe('HashSigner', function () {
     it('should sign and verify the data', function () {
       var data = Buffer.from('fafafa', 'hex');
 
-      var signature = Signer.sign(data, privateKeyString);
+      var signature = Signer.sign(data, new PrivateKey(privateKeyString));
 
       expect(signature).to.be.an.instanceOf(Buffer);
 
@@ -36,7 +36,7 @@ describe('HashSigner', function () {
       var data = Buffer.from('fafafa', 'hex');
       var incorrectData = Buffer.from('fefefe', 'hex');
 
-      var signature = Signer.sign(data, privateKeyString);
+      var signature = Signer.sign(data, new PrivateKey(privateKeyString));
       var isVerified = Signer.verifySignature(
         incorrectData,
         signature,
@@ -50,7 +50,7 @@ describe('HashSigner', function () {
       var data = Buffer.from('fafafa', 'hex');
       var incorrectPubKey = new PrivateKey().toPublicKey();
 
-      var signature = Signer.sign(data, privateKeyString);
+      var signature = Signer.sign(data, new PrivateKey(privateKeyString));
       var isVerified = Signer.verifySignature(data, signature, incorrectPubKey);
 
       expect(isVerified).to.be.false;

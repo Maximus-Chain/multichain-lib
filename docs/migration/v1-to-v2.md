@@ -309,13 +309,19 @@ const mine = create('mychain');
 const addr = new mine.Address(pubkeyHash, 'livenet');
 ```
 
-Register custom hash algorithms independently:
+Register custom hash algorithms per chain, in the config passed to
+`registerChain`:
 
 ```typescript
-import { registerAlgorithm, algorithms } from '@maximus-chain/multichain-lib';
-
-registerAlgorithm('myalgo', (buf) => /* ... */);
-console.log(algorithms()); // ['x11', 'myalgo']
+registerChain('mychain', {
+  livenet: { /* ... */ },
+  testnet: { /* ... */ },
+  algorithms: {
+    myalgo: (buf) => /* ... */,
+  },
+});
+const mine = create('mychain');
+console.log(mine.crypto.Hash.list()); // ['x11', 'myalgo']
 ```
 
 ## Checklist

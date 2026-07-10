@@ -32,7 +32,7 @@ describe('Osmium chain', function () {
     });
 
     it('should register x11 when created', function () {
-      multichain.algorithms().should.include('x11');
+      osmium.crypto.Hash.list().should.include('x11');
     });
   });
 

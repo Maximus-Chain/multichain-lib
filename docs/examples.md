@@ -4,14 +4,13 @@ All examples use the multi-chain factory pattern. Each chain has its own isolate
 
 ```javascript
 const multichain = require('@maximus-chain/multichain-lib');
-const { create, registerChain, chains, registerAlgorithm, algorithms } = multichain;
+const { create, registerChain, chains } = multichain;
 ```
 
-## List available chains and algorithms
+## List available chains
 
 ```javascript
-console.log('Built-in chains:', chains());    // ['maximus']
-console.log('Registered algorithms:', algorithms()); // [] before any chain is created
+console.log('Built-in chains:', chains());    // ['maximus', 'osmium']
 ```
 
 ## Create a built-in chain (MaximusChain)
@@ -194,9 +193,18 @@ const mine = multichain.create('mychain');
 const addr = new mine.Address(pubkeyHash, 'livenet');
 ```
 
-## Register a custom hash algorithm globally
+## Register a custom hash algorithm for a chain
+
+Custom algorithms are declared per chain — there is no global registry:
 
 ```javascript
-multichain.registerAlgorithm('myalgo', (buf) => Buffer.from(myHash(buf)));
-console.log('Algorithms:', multichain.algorithms());
+multichain.registerChain('mychain', {
+  livenet: { /* ... */ },
+  testnet: { /* ... */ },
+  algorithms: {
+    myalgo: (buf) => Buffer.from(myHash(buf)),
+  },
+});
+const mine = multichain.create('mychain');
+console.log('Algorithms:', mine.crypto.Hash.list());
 ```

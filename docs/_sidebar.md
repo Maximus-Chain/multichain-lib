@@ -13,7 +13,9 @@
   - [UnspentOutput](core-concepts/unspentoutput.md)
 - [Examples](examples.md)
 - [Integrate a new chain](INTEGRATE-CHAIN.md)
-- [Migration Guide](MIGRATION.md)
+- Migration Guides
+  - [v1 → v2](migration/v1-to-v2.md)
+  - [v3.0.0 (chain isolation)](migration/v3.md)
 - Usage
   - [Address](usage/address.md)
   - [HDPrivateKey](usage/hdprivatekey.md)
