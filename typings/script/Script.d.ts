@@ -18,6 +18,18 @@ export class Script {
   chunks: any[];
 
   /**
+   * Serialize the script to a Buffer.
+   * @returns {Buffer}
+   */
+  toBuffer(): Buffer;
+
+  /**
+   * Serialize the script to a hex string.
+   * @returns {string}
+   */
+  toHex(): string;
+
+  /**
    * @returns {boolean} if this is a pay to pubkey hash output script
    */
   isPublicKeyHashOut(): boolean;
@@ -244,8 +256,9 @@ export class Script {
 
   /**
    * @return {Script} an output script built from the address
+   * @param {(Address|string)} address - the address to convert
    */
-  static fromAddress(): Script;
+  static fromAddress(address: Address | string): Script;
 
   /**
    * Will return the associated address information object

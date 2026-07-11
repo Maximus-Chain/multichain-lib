@@ -1,3 +1,5 @@
+import { AbstractPayload } from './AbstractPayload';
+
 /**
  * @typedef {Object} ProRegTxPayloadJSON
  * @property {number} version    uint_16    2    Provider transaction version number. Currently set to 1.
@@ -55,7 +57,7 @@ export type ProRegTxPayloadJSON = {
  * @property {number} [platformHTTPPort] Platform HTTP port
  * @property {string} [payloadSig] Signature of the hash of the ProTx fields. Signed with keyIDOwner
  */
-export class ProRegTxPayload {
+export class ProRegTxPayload extends AbstractPayload {
   /**
    * Parse raw payload
    * @param {Buffer} rawPayload

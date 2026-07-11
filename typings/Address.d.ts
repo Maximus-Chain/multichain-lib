@@ -198,13 +198,13 @@ export class Address {
    *
    * @param {string} data - The encoded data
    * @param {String|Network} network - either a Network instance, 'livenet', or 'testnet'
-   * @param {string} type - The type of address: 'script' or 'pubkey'
+   * @param {string=} type - The type of address: 'script' or 'pubkey'. Optional.
    * @returns {null|Error} The corresponding error message
    */
   static getValidationError(
     data: string,
     network: string | Network,
-    type: string
+    type?: string
   ): null | Error;
 
   /**
@@ -217,13 +217,13 @@ export class Address {
    *
    * @param {string} data - The encoded data
    * @param {String|Network} network - either a Network instance, 'livenet', or 'testnet'
-   * @param {string} type - The type of address: 'script' or 'pubkey'
+   * @param {string=} type - The type of address: 'script' or 'pubkey'. Optional.
    * @returns {boolean} The corresponding error message
    */
   static isValid(
     data: string,
     network: string | Network,
-    type: string
+    type?: string
   ): boolean;
 
   /**

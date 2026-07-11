@@ -13,16 +13,35 @@ import { Payload } from './payload/Payload';
 export namespace Transaction {
   /**
    * @typedef {Object} Transaction.fromObjectParams
-   * @property {string} prevTxId
-   * @property {number} outputIndex
-   * @property {(Buffer|string|Script)} script
-   * @property {number} satoshis
+   *
+   * All fields are optional at the type level so that any of the
+   * input formats documented in `Transaction#from()` (bitcoind
+   * `listunspent` lowercase fields, library canonical camelCase, or
+   * legacy `prevTxId`) can be passed without casts. The runtime
+   * validates that the required combinations are present.
+   *
+   * @property {string} [txId]      Previous tx id (canonical library name).
+   * @property {string} [txid]      Alias for `txId` (bitcoind `listunspent` lowercase).
+   * @property {string} [prevTxId]  Legacy alias for `txId`.
+   * @property {number} [outputIndex] Output index (canonical library name).
+   * @property {number} [vout]      Alias for `outputIndex` (bitcoind `listunspent`).
+   * @property {(Buffer|string|Script)} [script]        Script (canonical).
+   * @property {(Buffer|string|Script)} [scriptPubKey]  Alias for `script` (bitcoind).
+   * @property {number} [satoshis]  Amount in satoshis (canonical).
+   * @property {number} [amount]    Amount in BTC (bitcoind `listunspent`).
+   * @property {(string|Address)} [address] Optional associated address.
    */
   export type fromObjectParams = {
-    prevTxId: string;
-    outputIndex: number;
-    script: Buffer | string | Script;
-    satoshis: number;
+    txId?: string;
+    txid?: string;
+    prevTxId?: string;
+    outputIndex?: number;
+    vout?: number;
+    script?: Buffer | string | Script;
+    scriptPubKey?: Buffer | string | Script;
+    satoshis?: number;
+    amount?: number;
+    address?: string | Address;
   };
   /**
    * @typedef {Object} Transaction.toObjectParams
