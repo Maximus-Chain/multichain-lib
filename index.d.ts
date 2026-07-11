@@ -15,7 +15,7 @@ import { ChainLib, ChainConfig } from './typings/chain';
 import { MaximusChainLib } from './typings/chains/maximus';
 import { OsmiumChainLib } from './typings/chains/osmium';
 
-/** Library version, e.g. `"v3.0.1"`. */
+/** Library version, e.g. `"v3.0.2"`. */
 export const version: string;
 
 /** Names of all currently-registered (built-in + custom) chains. */
