@@ -1,6 +1,6 @@
 {
   "name": "@maximus-chain/multichain-lib",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "A multi-chain cryptocurrency primitives library. Built-in support for MaximusChain; register custom chains.",
   "author": "MaximusChain",
   "main": "index.cjs",
