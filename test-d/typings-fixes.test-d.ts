@@ -1,6 +1,6 @@
 // tsd tests for the typing fixes in Part 2 of docs/pending/changes.md.
 //
-// Each block documents an issue (#1..#5) and asserts the type-level
+// Each block documents an issue (#1..#7) and asserts the type-level
 // behaviour the fix is supposed to enable. None of these assertions
 // need to run at runtime — tsd only checks that the types compile.
 
@@ -103,3 +103,20 @@ const _okWithType: boolean = AddressCtor.isValid(
   'livenet',
   AddressCtor.PayToPublicKeyHash
 );
+
+// --- Issue #7: TransactionUtxo is re-exported from each chain subpath ---
+
+import type { TransactionUtxo as MaximusUtxo } from '../typings/chains/maximus';
+import type { TransactionUtxo as OsmiumUtxo } from '../typings/chains/osmium';
+
+// Same shape as `Transaction.fromObjectParams`.
+expectAssignable<Transaction.fromObjectParams>(
+  {} as MaximusUtxo
+);
+expectAssignable<Transaction.fromObjectParams>(
+  {} as OsmiumUtxo
+);
+
+// Usable as the array element of `Transaction#from()`.
+const _utxos: MaximusUtxo[] = [];
+new TransactionCtor(undefined).from(_utxos);
