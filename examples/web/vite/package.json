@@ -1,0 +1,18 @@
+{
+  "name": "multichain-lib-vite-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Reproduction fixture for the @maximus-chain/multichain-lib browser bug. Imports the package via `import { create } from '@maximus-chain/multichain-lib'` and forces the sha256ripemd160 → ripemd160 → hash-base → readable-stream path. If the package resolution does not point at the precompiled ESM bundle the page crashes with `TypeError: can't access property \"slice\", process.version is undefined`.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 5173 --strictPort"
+  },
+  "dependencies": {
+    "@maximus-chain/multichain-lib": "file:../../../"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

@@ -2,3 +2,5 @@ dist/*
 test/*
 webpack.config.js
 test.spec.js
+examples/**/dist/*
+examples/**/node_modules/*

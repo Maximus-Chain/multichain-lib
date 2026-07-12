@@ -1,5 +1,47 @@
 # Changelog
 
+## 3.0.3
+
+### Fixed
+
+- **Browser SPA crash on Vite/Rollup/Webpack** (`process.version is undefined`).
+  Importing the package from a browser bundler no longer crashes at
+  `_stream_writable.js:57` with
+  `TypeError: can't access property "slice", process.version is undefined`.
+  The resolution path now points browser bundlers at
+  `dist/multichain-lib.mjs` (which already inlines the `process/browser`
+  polyfill) instead of routing through `index.mjs` and the raw
+  `ripemd160 → hash-base → readable-stream@2` CJS chain.
+  - `package.json` exposes `dist/multichain-lib.mjs` via the new
+    top-level `browser` field AND through `exports["."].browser`, with
+    `browser` declared before `import` so conditional exports pick it
+    first when the bundler activates the `browser` condition.
+  - `module` and the `import`/`require`/`default` conditions continue to
+    serve Node consumers from the source (`index.mjs` / `index.cjs`),
+    where `process`, `Buffer`, `crypto` etc. are real built-ins.
+  - Consumers do **not** need `vite-plugin-node-polyfills` or a manual
+    `process` shim. The published package is self-contained.
+
+### Added
+
+- **`verify:bundle` npm script** (`scripts/verify-bundle.mjs`) that fails
+  the build if `dist/multichain-lib.mjs` ever loses the
+  `process.version = ''` polyfill cluster, or stops carrying the named
+  root exports (`create`, `chains`, `registerChain`, `createHashRegistry`,
+  `version`, `versionGuard`). Wired into `prepublishOnly` and the
+  `test:browser` script. Codifies the invariant that makes the bundle
+  safe in browsers.
+- **Vite fixture regression test**
+  (`examples/web/vite/` + `test/fixture-vite.e2e.spec.mjs`). Builds a
+  minimal Vite app that imports the package by its public name and
+  exercises the `Address.fromPublicKey` path that triggered the bug.
+  Runs in Playwright against the local source via `file:../..` (and can
+  be retargeted at an `npm pack` tarball). Confirms `pageerror === null`
+  and a correct derived address.
+- **Playwright `webServer` array** in `playwright.config.mjs`. Keeps the
+  existing UMD bundle test on port 8080 and adds the Vite fixture on
+  port 5173, so both suites run in CI without manual orchestration.
+
 ## Unreleased
 
 ### Added

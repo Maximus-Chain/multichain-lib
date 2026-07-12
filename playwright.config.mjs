@@ -17,10 +17,24 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'npx http-server . -p 8080',
-    url: 'http://localhost:8080',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  // Two web servers: one for the in-tree UMD bundle test (port 8080)
+  // and one for the Vite fixture (port 5173). The fixture imports the
+  // package through its public name, so it only passes if
+  // `package.json` correctly steers Vite to `dist/multichain-lib.mjs`.
+  webServer: [
+    {
+      command: 'npx http-server . -p 8080',
+      url: 'http://localhost:8080',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+    },
+    {
+      command: 'npm run --prefix examples/web/vite preview',
+      url: 'http://localhost:5173',
+      reuseExistingServer: !process.env.CI,
+      timeout: 180000,
+      stdout: 'ignore',
+      stderr: 'pipe',
+    },
+  ],
 });

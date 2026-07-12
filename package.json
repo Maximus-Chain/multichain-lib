@@ -1,14 +1,16 @@
 {
   "name": "@maximus-chain/multichain-lib",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "A multi-chain cryptocurrency primitives library. Built-in support for MaximusChain; register custom chains.",
   "author": "MaximusChain",
   "main": "index.cjs",
-  "module": "index.mjs",
+  "module": "./dist/multichain-lib.mjs",
+  "browser": "./dist/multichain-lib.mjs",
   "unpkg": "dist/multichain-lib.min.js",
   "exports": {
     ".": {
       "types": "./index.d.ts",
+      "browser": "./dist/multichain-lib.mjs",
       "import": "./index.mjs",
       "require": "./index.cjs",
       "default": "./index.cjs"
@@ -26,16 +28,18 @@
   },
   "types": "index.d.ts",
   "scripts": {
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run build && npm run verify:bundle",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "npm run test:types && npm run test:node && npm run test:browser",
     "test:node": "vitest run",
-    "test:browser": "npm run build && npx playwright test --config=playwright.config.mjs --project=chromium",
+    "test:browser": "npm run build && npm run verify:bundle && npx playwright test --config=playwright.config.mjs --project=chromium",
     "test:e2e": "npx playwright test",
-    "test:types": "npx tsd",
+    "test:types": "NODE_OPTIONS='--max-old-space-size=8192' npx tsd",
     "coverage": "vitest run --coverage",
     "build": "webpack",
+    "verify:bundle": "node ./scripts/verify-bundle.mjs",
+    "verify": "npm run verify:bundle",
     "pretty": "npx prettier --write ."
   },
   "files": [
