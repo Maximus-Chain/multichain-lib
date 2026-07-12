@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.0.4
+
+### Fixed
+
+- **CI: `test:browser` webServer timeout.** The Playwright config used to
+  spawn `npm run --prefix examples/web/vite preview` directly. In CI,
+  `npm ci` only resolves the parent package's dependencies, so `vite`
+  was missing inside the fixture and the webServer silently died,
+  producing the misleading
+  `Error: Timed out waiting 180000ms from config.webServer`.
+  The fixture webServer now runs `scripts/start-vite-fixture.sh`,
+  which installs the fixture deps on demand, builds it if needed, and
+  starts `vite preview`. The test is now self-bootstrapping in a
+  fresh checkout.
+
 ## 3.0.3
 
 ### Fixed

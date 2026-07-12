@@ -21,6 +21,11 @@ export default defineConfig({
   // and one for the Vite fixture (port 5173). The fixture imports the
   // package through its public name, so it only passes if
   // `package.json` correctly steers Vite to `dist/multichain-lib.mjs`.
+  //
+  // The fixture webServer runs `scripts/start-vite-fixture.sh`, which
+  // installs the fixture deps, builds it if needed, and starts
+  // `vite preview`. This keeps the test self-bootstrapping in CI
+  // where `npm ci` only resolves the parent package's dependencies.
   webServer: [
     {
       command: 'npx http-server . -p 8080',
@@ -29,11 +34,11 @@ export default defineConfig({
       timeout: 120000,
     },
     {
-      command: 'npm run --prefix examples/web/vite preview',
+      command: 'bash scripts/start-vite-fixture.sh',
       url: 'http://localhost:5173',
       reuseExistingServer: !process.env.CI,
-      timeout: 180000,
-      stdout: 'ignore',
+      timeout: 240000,
+      stdout: 'pipe',
       stderr: 'pipe',
     },
   ],
