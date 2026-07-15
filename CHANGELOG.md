@@ -1,5 +1,50 @@
 # Changelog
 
+## 3.1.0
+
+### Added
+
+- **Per-network IPv6 service support for `ProRegTxPayload.service`.**
+  Built-in chains can now opt in to accepting bracketed `[ipv6]:port`
+  service strings in `ProRegTxPayload.service`. Internally they serialize
+  as 16 raw IPv6 bytes (or, for IPv4 inputs, the existing IPv4-mapped
+  form) followed by a 2-byte big-endian port, matching the Dash core wire
+  format consumed by Pantheon/Maximus.
+  - New optional `NetworkParameters.supportsIPv6?: boolean` flag. When
+    `true`, both IPv4 and bracketed IPv6 service strings are accepted for
+    that network; when `false` (the default for back-compat), only IPv4
+    and the canonical empty-IPv6 form are accepted. Maximus livenet and
+    testnet opt in; Osmium and any chain registered via
+    `registerChain(...)` stay IPv4-only until they declare the flag.
+  - New exports on `lib/util/ip.js`:
+    `isIPV6(s)` (alias `isIPV6AndPort`) and `isIPAddressAndPort(s)`
+    accept `ipv4:port` or `[ipv6]:port`. `ipv6StringToBuffer(ip)` and
+    the internal serializer accept the standard `::` compression and an
+    embedded IPv4 in the low 32 bits (`[::ffff:1.2.3.4]:9999`).
+  - `bufferToIPAndPort` now recognizes non-mapped IPv6 buffers and
+    returns them as `[ipv6]:port`, with the longest zero-run compressed
+    to `::`. The all-zero buffer is still rendered as the canonical
+    `[0:0:0:0:0:0:0:0]:<port>` string to match core.
+  - `ProRegTxPayload#validate()` keeps the existing message
+    (`Expected service to be a string with ip address and port`) for
+    any IPv6 rejection on a chain without `supportsIPv6`, so callers
+    don't need to differentiate the two cases.
+
+### Tests
+
+- `test/util/ip.js` covers `[2001:db8::1]:9999`, `[::1]:9999`,
+  `[::ffff:1.2.3.4]:9999`, bare-IPv6 rejection, and round-trip
+  IPv4/zero/IPv6 bytes.
+- `test/isolated/transaction-payload.js` round-trips an IPv6
+  `ProRegTxPayload` on Maximus and asserts Osmium (which does not
+  declare `supportsIPv6`) rejects the same input.
+- `test/chains/osmium.js` pins Osmium's `supportsIPv6` to
+  `undefined` to lock in the default.
+- `test/fixture-vite.e2e.spec.mjs` no longer pins the bundle's
+  reported version to a patch string; it now only asserts that
+  `version` is a non-empty string, so future major bumps don't break
+  the Vite fixture.
+
 ## 3.0.4
 
 ### Fixed

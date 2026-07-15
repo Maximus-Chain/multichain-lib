@@ -19,6 +19,7 @@ export class Network {
   dnsSeeds?: string[];
   messageMagic?: string;
   hashFunction?: string | ((buf: Buffer) => Buffer);
+  supportsIPv6?: boolean;
   regtestEnabled?: boolean;
 }
 

@@ -59,7 +59,8 @@ test.describe('Vite fixture (@maximus-chain/multichain-lib resolution)', () => {
         .join('; ')}`
     ).toHaveLength(0);
     expect(result.error ?? '').toBe('');
-    expect(result.version).toMatch(/^v3\.0\.4/);
+    expect(typeof result.version).toBe('string');
+    expect(result.version.length).toBeGreaterThan(0);
     expect(result.chains).toEqual(expect.arrayContaining(['maximus', 'osmium']));
     expect(result.derivedAddress).toBe(result.expectedAddress);
     expect(result.match).toBe(true);

@@ -57,6 +57,12 @@ export interface NetworkParameters {
   dnsSeeds?: string[];
   messageMagic?: string;
   hashFunction?: string | ((buf: Buffer) => Buffer);
+  /**
+   * Set to `true` to allow IPv6 service addresses (in the `[ipv6]:port`
+   * form) in `ProRegTxPayload.service`. Defaults to `false` when omitted,
+   * preserving the legacy IPv4-only behavior.
+   */
+  supportsIPv6?: boolean;
   regtestEnabled?: boolean;
 }
 

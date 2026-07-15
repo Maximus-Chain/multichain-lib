@@ -161,6 +161,15 @@ describe('Osmium chain', function () {
     });
   });
 
+  describe('ipv6', function () {
+    it('should not advertise IPv6 service support on livenet', function () {
+      chai.expect(osmium.Networks.livenet.supportsIPv6).to.be.undefined;
+    });
+    it('should not advertise IPv6 service support on testnet', function () {
+      chai.expect(osmium.Networks.testnet.supportsIPv6).to.be.undefined;
+    });
+  });
+
   describe('regtest switch', function () {
     it('should toggle regtest port/magic on the testnet network', function () {
       osmium.Networks.disableRegtest();

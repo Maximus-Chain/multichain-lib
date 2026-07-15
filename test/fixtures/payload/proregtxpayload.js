@@ -82,10 +82,49 @@ function getProRegTransactionJSON() {
   }
 }
 
+// Maximal-length (272-char) IPv6 fixture used to exercise the IPv6-on-Maximus
+// path. Service is `[2001:db8::1]:19999` which encodes to:
+// 2001:0db8:0000:0000:0000:0000:0000:0001 (16 bytes) + 0x4e1f (19999 BE)
+var PROV6_SERVICE_IP = '[2001:db8::1]';
+var PROV6_SERVICE_PORT = 19999;
+var PROV6_SERVICE_PORT_BE = Buffer.from([0x4e, 0x1f]);
+var PROV6_SERVICE_HEX_FIRST16 = '20010db8000000000000000000000001';
+var PROV6_SERVICE_HEX = PROV6_SERVICE_HEX_FIRST16 + '4e1f';
+
+function getProRegIPv6PayloadJSON() {
+  var json = getProRegPayloadJSON();
+  json.service = PROV6_SERVICE_IP + ':' + PROV6_SERVICE_PORT;
+  return json;
+}
+
+function getProRegIPv6PayloadBuffer(serviceHex) {
+  // ProRegTx payload layout (little-endian):
+  //   2B version, 2B type, 2B mode, 32B collateralHash, 4B collateralIndex,
+  //   18B service+port, … The original fixture encodes the IPv4-mapped
+  //   service at bytes 42..59. We swap those 18 bytes for the IPv6 fixture
+  //   so existing fields (collateralHash, keyIDs, …) stay stable.
+  var hex = getProRegPayloadHex();
+  // 18-byte service+port live at chars 84..119 (each byte = 2 hex chars).
+  var before = hex.slice(0, 84);
+  var after = hex.slice(120);
+  return Buffer.from(before + serviceHex + after, 'hex');
+}
+
 module.exports = {
   getProRegPayloadHex: getProRegPayloadHex,
   getProRegPayloadJSON: getProRegPayloadJSON,
   getProRegPayloadBuffer: getProRegPayloadBuffer,
   getProRegTransactionHex: getProRegTransactionHex,
-  getProRegTransactionJSON: getProRegTransactionJSON
+  getProRegTransactionJSON: getProRegTransactionJSON,
+  getProRegIPv6Service: function () {
+    return PROV6_SERVICE_IP + ':' + PROV6_SERVICE_PORT;
+  },
+  getProRegIPv6PayloadJSON: getProRegIPv6PayloadJSON,
+  getProRegIPv6PayloadBuffer: function () {
+    return getProRegIPv6PayloadBuffer(PROV6_SERVICE_HEX);
+  },
+  PROV6_SERVICE_PORT: PROV6_SERVICE_PORT,
+  PROV6_SERVICE_PORT_BE: PROV6_SERVICE_PORT_BE,
+  PROV6_SERVICE_HEX: PROV6_SERVICE_HEX,
+  PROV6_SERVICE_HEX_FIRST16: PROV6_SERVICE_HEX_FIRST16,
 };
