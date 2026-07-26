@@ -31,8 +31,8 @@ describe('Osmium chain', function () {
       osmium.should.have.property('encoding');
     });
 
-    it('should register x11 when created', function () {
-      osmium.crypto.Hash.list().should.include('x11');
+    it('should expose a hash registry with no PoW algorithms pre-loaded', function () {
+      osmium.crypto.Hash.list().should.deep.equal([]);
     });
   });
 
@@ -71,10 +71,6 @@ describe('Osmium chain', function () {
     it('should have the Dash-inherited message magic', function () {
       net.messageMagic.should.equal('DarkCoin Signed Message:\n');
     });
-
-    it('should declare x11 as the hash function', function () {
-      net.hashFunction.should.equal('x11');
-    });
   });
 
   describe('testnet', function () {
@@ -107,10 +103,6 @@ describe('Osmium chain', function () {
 
     it('should have the same Dash-inherited message magic as livenet', function () {
       net.messageMagic.should.equal('DarkCoin Signed Message:\n');
-    });
-
-    it('should declare x11 as the hash function', function () {
-      net.hashFunction.should.equal('x11');
     });
   });
 
@@ -146,18 +138,35 @@ describe('Osmium chain', function () {
     });
   });
 
-  describe('hash algorithm', function () {
-    it('should expose Hash.x11 via the bound library', function () {
-      osmium.crypto.Hash.x11.should.be.a('function');
+  describe('hash registry', function () {
+    it('should expose the pure Bitcoin/Dash hashes', function () {
+      osmium.crypto.Hash.sha256.should.be.a('function');
+      osmium.crypto.Hash.sha256sha256.should.be.a('function');
+      osmium.crypto.Hash.sha256ripemd160.should.be.a('function');
+      osmium.crypto.Hash.ripemd160.should.be.a('function');
     });
 
-    it('should produce a deterministic hash for a known input', function () {
+    it('should produce deterministic hashes for known inputs', function () {
       var buf = Buffer.from('test', 'utf8');
-      var h1 = osmium.crypto.Hash.x11(buf);
-      var h2 = osmium.crypto.Hash.x11(buf);
-      Buffer.isBuffer(h1).should.equal(true);
-      h1.toString('hex').should.equal(h2.toString('hex'));
-      h1.length.should.equal(32);
+      var a = osmium.crypto.Hash.sha256sha256(buf);
+      var b = osmium.crypto.Hash.sha256sha256(buf);
+      Buffer.isBuffer(a).should.equal(true);
+      a.toString('hex').should.equal(b.toString('hex'));
+      a.length.should.equal(32);
+    });
+
+    it('should let consumers register custom hash algorithms', function () {
+      var fp = osmium.crypto.Hash;
+      var calls = 0;
+      fp.register('custom_marker', function (buf) {
+        calls++;
+        return Buffer.from('custom:' + buf.toString('utf8'), 'utf8');
+      });
+      var h = fp.get('custom_marker')(Buffer.from('x', 'utf8'));
+      calls.should.equal(1);
+      h.toString('utf8').should.equal('custom:x');
+      fp.list().should.include('custom_marker');
+      fp.listAlgorithms().should.include('custom_marker');
     });
   });
 

@@ -286,9 +286,6 @@ import { registerChain, create } from '@maximus-chain/multichain-lib';
 registerChain('mychain', {
   name: 'mychain',
   messageMagic: 'MyChain Signed Message:\n',
-  algorithms: {
-    sha256d: (buf) => /* SHA-256d implementation */,
-  },
   livenet: {
     name: 'livenet',
     alias: ['mainnet'],
@@ -300,7 +297,6 @@ registerChain('mychain', {
     networkMagic: 0x12345678,
     port: 8333,
     dnsSeeds: [],
-    hashFunction: 'sha256d',
   },
   testnet: { /* ... */ },
 });
@@ -309,20 +305,13 @@ const mine = create('mychain');
 const addr = new mine.Address(pubkeyHash, 'livenet');
 ```
 
-Register custom hash algorithms per chain, in the config passed to
-`registerChain`:
-
-```typescript
-registerChain('mychain', {
-  livenet: { /* ... */ },
-  testnet: { /* ... */ },
-  algorithms: {
-    myalgo: (buf) => /* ... */,
-  },
-});
-const mine = create('mychain');
-console.log(mine.crypto.Hash.list()); // ['x11', 'myalgo']
-```
+> **v4.0.0 note:** the `algorithms` and `hashFunction` config keys shown
+> in earlier drafts of this guide were removed in 4.0. Register custom hash
+> algorithms on a chain programmatically after `create(name)`:
+> `mine.crypto.Hash.register('myalgo', fn)`. The built-in Bitcoin/Dash
+> hashes (`sha256`, `sha256sha256`, `sha256ripemd160`, `ripemd160`,
+> `sha512`, `hmac`, `sha256hmac`, `sha512hmac`, `sha1`) remain exposed on
+> every chain's registry without registration.
 
 ## Checklist
 

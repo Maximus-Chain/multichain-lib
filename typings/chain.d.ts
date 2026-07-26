@@ -34,8 +34,6 @@ export interface ChainConfig {
   name: string;
   /** Magic prefix used when signing messages (e.g. `"MaximusCoin Signed Message:\n"`). */
   messageMagic: string;
-  /** Optional map of hash algorithm name → function. Per-chain, isolated at runtime. */
-  algorithms?: Record<string, (buf: Buffer) => Buffer>;
   /** Livenet Network parameters. */
   livenet: NetworkParameters;
   /** Testnet Network parameters. */
@@ -56,7 +54,6 @@ export interface NetworkParameters {
   port?: number;
   dnsSeeds?: string[];
   messageMagic?: string;
-  hashFunction?: string | ((buf: Buffer) => Buffer);
   /**
    * Set to `true` to allow IPv6 service addresses (in the `[ipv6]:port`
    * form) in `ProRegTxPayload.service`. Defaults to `false` when omitted,
@@ -76,8 +73,6 @@ export interface HashRegistry {
   hmac(...args: any[]): Buffer;
   sha256hmac(...args: any[]): Buffer;
   sha512hmac(...args: any[]): Buffer;
-  x11(buf: Buffer): Buffer;
-  forNetwork(buf: Buffer, network?: { hashFunction?: string | ((b: Buffer) => Buffer) }): Buffer;
   register(name: string, fn: (buf: Buffer) => Buffer): void;
   registerAlgorithm(name: string, fn: (buf: Buffer) => Buffer): void;
   get(name: string): (buf: Buffer) => Buffer;

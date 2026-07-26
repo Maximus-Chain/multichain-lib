@@ -28,7 +28,8 @@ test.describe('Browser ESM Bundle Tests', () => {
         hasVersion: typeof m.version === 'string',
         chainsContainsMaximus: m.chains().indexOf('maximus') >= 0,
         chainsContainsOsmium: m.chains().indexOf('osmium') >= 0,
-        chainHasX11Algorithm: lib.crypto.Hash.list().indexOf('x11') >= 0,
+        chainsContainsFilopow: m.chains().indexOf('filopow') >= 0,
+        chainHashRegistryStartsEmpty: lib.crypto.Hash.list().length === 0,
         hasAddress: typeof lib.Address !== 'undefined',
         hasPublicKey: typeof lib.PublicKey !== 'undefined',
         hasNetworks: typeof lib.Networks !== 'undefined',
@@ -43,7 +44,8 @@ test.describe('Browser ESM Bundle Tests', () => {
     expect(result.hasVersion).toBe(true);
     expect(result.chainsContainsMaximus).toBe(true);
     expect(result.chainsContainsOsmium).toBe(true);
-    expect(result.chainHasX11Algorithm).toBe(true);
+    expect(result.chainsContainsFilopow).toBe(true);
+    expect(result.chainHashRegistryStartsEmpty).toBe(true);
     expect(result.hasAddress).toBe(true);
     expect(result.hasPublicKey).toBe(true);
     expect(result.hasNetworks).toBe(true);
@@ -209,7 +211,6 @@ test.describe('Browser ESM Bundle Tests', () => {
       const m = window.multichain.create('osmium');
       const max = window.multichain.create('maximus');
       return {
-        hasOsmiumAlgorithms: m.crypto.Hash.list().indexOf('x11') >= 0,
         osmiumPubkeyhashPrefix: m.Networks.livenet.pubkeyhash,
         maximusPubkeyhashPrefix: max.Networks.livenet.pubkeyhash,
         distinctAcrossChains: m.Networks !== max.Networks,
@@ -219,7 +220,6 @@ test.describe('Browser ESM Bundle Tests', () => {
       };
     });
 
-    expect(result.hasOsmiumAlgorithms).toBe(true);
     expect(result.osmiumPubkeyhashPrefix).toBe(63);
     expect(result.maximusPubkeyhashPrefix).toBe(50);
     expect(result.distinctAcrossChains).toBe(true);
@@ -232,7 +232,7 @@ test.describe('Browser ESM Bundle Tests', () => {
     const result = await page.evaluate(() => {
       const reg = window.multichain.createHashRegistry();
       const keys = Object.keys(reg).sort();
-      const baseKeys = ['get', 'hmac', 'list', 'register', 'ripemd160', 'sha1', 'sha256', 'sha256hmac', 'sha256ripemd160', 'sha256sha256', 'sha512', 'sha512hmac', 'x11', 'forNetwork'];
+      const baseKeys = ['get', 'hmac', 'list', 'register', 'ripemd160', 'sha1', 'sha256', 'sha256hmac', 'sha256ripemd160', 'sha256sha256', 'sha512', 'sha512hmac'];
       // Register a deterministic identity algorithm that doesn't need Buffer
       // (Buffer isn't a global in the page context even though webpack
       // injects it inside the bundle).
@@ -243,7 +243,6 @@ test.describe('Browser ESM Bundle Tests', () => {
         hasRegister: typeof reg.register === 'function',
         hasList: typeof reg.list === 'function',
         hasGet: typeof reg.get === 'function',
-        hasForNetwork: typeof reg.forNetwork === 'function',
         hasBaseKeys: baseKeys.every(function (k) { return keys.indexOf(k) >= 0; }),
         registeredCustomAlgorithm: reg.list().indexOf('custom') >= 0,
         customAlgorithmWorks: reg.get('custom')('hi') === 'hihi',
@@ -253,7 +252,6 @@ test.describe('Browser ESM Bundle Tests', () => {
     expect(result.hasRegister).toBe(true);
     expect(result.hasList).toBe(true);
     expect(result.hasGet).toBe(true);
-    expect(result.hasForNetwork).toBe(true);
     expect(result.hasBaseKeys).toBe(true);
     expect(result.registeredCustomAlgorithm).toBe(true);
     expect(result.customAlgorithmWorks).toBe(true);
@@ -288,7 +286,7 @@ test.describe('Browser ESM Bundle Tests', () => {
     expect(result.hasCreateHashRegistry).toBe(true);
     expect(result.hasVersion).toBe(true);
     expect(result.hasDefault).toBe(true);
-    expect(result.chainsList).toEqual(['maximus', 'osmium']);
+    expect(result.chainsList).toEqual(['maximus', 'osmium', 'filopow']);
     expect(result.canInstantiateViaNamedImport).toBe(true);
   });
 });

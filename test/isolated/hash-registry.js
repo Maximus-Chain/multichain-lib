@@ -22,12 +22,14 @@ describe('cross-chain isolation: hash registry', function () {
     }).should.throw(/Unknown hash algorithm/);
   });
 
-  it('each chain gets its own hash registry pre-loaded with its algorithms', function () {
+  it('each chain gets its own hash registry isolated from other chains', function () {
     var maximus = multichain.create('maximus');
     var osmium = multichain.create('osmium');
 
-    maximus.crypto.Hash.list().should.include('x11');
-    osmium.crypto.Hash.list().should.include('x11');
+    // Built-in chains no longer pre-register PoW algorithms. Consumers may
+    // still register their own algorithms per chain via registry.register.
+    maximus.crypto.Hash.list().should.deep.equal([]);
+    osmium.crypto.Hash.list().should.deep.equal([]);
 
     // Custom algorithms registered on one chain's registry do not leak into
     // another chain's registry — there is no shared/global registry anywhere.

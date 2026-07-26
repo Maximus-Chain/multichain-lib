@@ -156,15 +156,6 @@ console.log(maximus.Networks.testnet.name);        // 'testnet'
 multichain.registerChain('mychain', {
   name: 'mychain',
   messageMagic: 'MyChain Signed Message:\n',
-  algorithms: {
-    sha256d: (buf) => {
-      const crypto = require('crypto');
-      return crypto
-        .createHash('sha256')
-        .update(crypto.createHash('sha256').update(buf).digest())
-        .digest();
-    },
-  },
   livenet: {
     name: 'livenet',
     alias: ['mainnet'],
@@ -176,7 +167,6 @@ multichain.registerChain('mychain', {
     networkMagic: 0x0f0f0f0f,
     port: 8333,
     dnsSeeds: [],
-    hashFunction: 'sha256d',
   },
   testnet: {
     name: 'testnet',
@@ -188,7 +178,6 @@ multichain.registerChain('mychain', {
     networkMagic: 0x0b0b0b0b,
     port: 18333,
     dnsSeeds: [],
-    hashFunction: 'sha256d',
   },
 });
 
@@ -196,18 +185,12 @@ const mine = multichain.create('mychain');
 const addr = new mine.Address(pubkeyHash, 'livenet');
 ```
 
-## Register a custom hash algorithm for a chain
+## Register a custom hash algorithm on a chain
 
-Custom algorithms are declared per chain — there is no global registry:
+Custom algorithms are registered per chain after `create(name)` — there is no global registry:
 
 ```javascript
-multichain.registerChain('mychain', {
-  livenet: { /* ... */ },
-  testnet: { /* ... */ },
-  algorithms: {
-    myalgo: (buf) => Buffer.from(myHash(buf)),
-  },
-});
 const mine = multichain.create('mychain');
-console.log('Algorithms:', mine.crypto.Hash.list());
+mine.crypto.Hash.register('myalgo', (buf) => Buffer.from(myHash(buf)));
+console.log(mine.crypto.Hash.list()); // ['myalgo']
 ```

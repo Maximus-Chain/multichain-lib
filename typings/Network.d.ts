@@ -18,7 +18,6 @@ export class Network {
   port?: number;
   dnsSeeds?: string[];
   messageMagic?: string;
-  hashFunction?: string | ((buf: Buffer) => Buffer);
   supportsIPv6?: boolean;
   regtestEnabled?: boolean;
 }
@@ -55,7 +54,6 @@ export namespace Networks {
    * @param {Number} data.networkMagic - The network magic number
    * @param {Number} data.port - The network port
    * @param {Array}  data.dnsSeeds - An array of dns seeds
-   * @param {string|function} data.hashFunction - The hash algorithm name (e.g. 'x11') or function
    * @return {Network}
    */
   function add(data: Network): Network;

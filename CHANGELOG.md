@@ -1,5 +1,47 @@
 # Changelog
 
+## 4.0.0
+
+### Breaking changes
+
+- **Removed `Hash.x11` shortcut.** The `registry.x11(buf)` helper has been
+  removed from `createHashRegistry()`. Register an `x11` algorithm via
+  `registry.register('x11', fn)` if you need it.
+- **Removed `Hash.forNetwork(buf, network)` dispatcher.** The automatic
+  hash-function selection per `Network.hashFunction` is gone. Call the
+  registered algorithm directly (`registry.get(name)(buf)`) or use your
+  own callback.
+- **Removed `NetworkParameters.hashFunction`.** Per-network PoW-style
+  hashing is no longer wired into the lib. Configure the algorithm
+  directly via `chainLib.crypto.Hash.register(name, fn)` after
+  `create(name)`.
+- **Removed `ChainConfig.algorithms` declarative registration.** The
+  `algorithms` map in `ChainConfig` no longer auto-populates the
+  chain's hash registry. Register programmatically instead:
+  `const fp = create('filopow'); fp.crypto.Hash.register('kawpow', fn);`
+- **Removed `@dashevo/x11-hash-js` dependency.** No chain-lib ever used
+  it internally; consumers who depended on the bundled X11 should
+  register their own algorithm via the registry. Bundle is lighter
+  (~85 KB + WASM dropped).
+
+### Added
+
+- **`filopow` chain support.** Adds `multichain.create('filopow')` with
+  livenet (FPOW, prefix `F`) and testnet (tfpow, prefix `m`/`n`).
+  KawPoW PoW block validation is delegated to the filopowd node via
+  RPC; this lib handles addresses, keys, HD derivation, mnemonics,
+  transactions, and message signing.
+
+### Notes
+
+- The library is now strictly focused on Bitcoin/Dash-style client-side
+  primitives. Block-header hashing, mining, and PoW validation are out
+  of scope — they live in the daemon. The hash registry still ships
+  with the protocol hashes (`sha256`, `sha256sha256`, `sha256ripemd160`,
+  `ripemd160`, `sha512`, `hmac`, `sha256hmac`, `sha512hmac`, `sha1`) so
+  signatures, addresses, HD derivation, and message framing continue to
+  work without any setup.
+
 ## 3.1.0
 
 ### Added

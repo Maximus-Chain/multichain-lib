@@ -2,7 +2,7 @@
 
 This guide explains how to add support for a new cryptocurrency to `@maximus-chain/multichain-lib`. It covers both paths: adding a chain as built-in (modifies the library repository) and registering a chain at runtime (consumer-side only).
 
-> Read this if you want the library to generate valid addresses, sign/verify messages, derive HD keys, and build transactions for a chain other than MaximusChain.
+> Read this if you want the library to generate valid addresses, sign/verify messages, derive HD keys, and build transactions for a chain other than the built-ins.
 
 ## Limitations
 
@@ -18,16 +18,17 @@ This library is a **UTXO-based, secp256k1, ECDSA-only** toolkit forked from the 
 | Chains with consensus tweaks | PoS-only, state rent, account abstraction, ZK-rollups | Validation rules and serialization diverge enough that porting is non-trivial | Extensive surgery across `lib/transaction/` and `lib/script/interpreter.js` |
 | Federated sidechains without standard chainparams | Liquid, RSK, some private chains | The chainparams values are not exposed or do not follow the Bitcoin convention | Manual reverse-engineering of the source |
 
-If your target chain is a Bitcoin-like UTXO chain (Bitcoin forks, Litecoin forks, Dash forks, Bitcoin Cash, Dogecoin, etc.), it fits this library with configuration only. Proceed below.
+If your target chain is a Bitcoin-like UTXO chain (Bitcoin forks, Litecoin forks, Dash forks, Bitcoin Cash, Dogecoin, Ravencoin forks, filopow, etc.), it fits this library with configuration only. Proceed below.
+
+## Scope: addresses, keys, transactions. Not block validation.
+
+This library handles **client-side primitives**: addresses, WIF private keys, HD derivation (BIP32/39/44), mnemonics, transactions (P2PKH, P2SH, multisig), and message sign/verify (the Bitcoin-style "Signed Message:\n" framing). It does not implement block validation, mining, or PoW hashing. Block validation is the daemon's responsibility — talk to it via RPC.
+
+The library exposes a small hash registry (`chainLib.crypto.Hash`) with the pure Bitcoin/Dash hashes (`sha256`, `sha256sha256`, `sha256ripemd160`, `ripemd160`, `sha512`, `hmac`, `sha256hmac`, `sha512hmac`, `sha1`). Consumers who need to hash arbitrary payloads — including block-header-style data for chain-specific PoW algorithms — can register their own algorithms via `hashRegistry.register(name, fn)`. No chain config wires this up automatically.
 
 ## Overview
 
-A chain is described by two things:
-
-1. A **network config** per environment (livenet and testnet) with version bytes, P2P magic, default port, and DNS seeds.
-2. A **hash algorithm** (X11, SHA-256d, Scrypt, etc.) used for block headers and `Hash.forNetwork(buf, network)`.
-
-Both live in `lib/chains/<name>.js`. The library's factory reads them and binds every class (Address, Transaction, Script, HDPrivateKey, Networks, ...) to that configuration.
+A chain is described by a single `ChainConfig` object with one network config per environment (livenet, testnet). Version bytes, P2P magic, default port, DNS seeds, and the message magic are all declared there.
 
 The chain is wired into the factory through one of two paths:
 
@@ -46,7 +47,6 @@ A chain config is a plain JavaScript object. Top-level keys describe the chain; 
 |-------|----------|------|---------|
 | `name` | yes | `string` | Identifier used by `multichain.create(name)`. Lowercase, no spaces. |
 | `messageMagic` | yes | `string` | Bytes prefixed to messages before signing. Usually ends with `\n`. |
-| `algorithms` | no | `object` | Map of `{ name: (buf: Buffer) => Buffer }`. Each function takes a buffer and returns the hashed buffer. |
 | `livenet` | yes | `object` | Configuration for the main network. See below. |
 | `testnet` | yes | `object` | Configuration for the test network. See below. |
 
@@ -67,22 +67,9 @@ A chain config is a plain JavaScript object. Top-level keys describe the chain; 
 | `port` | no | `number` | Default P2P port for the network. |
 | `dnsSeeds` | no | `string[]` | DNS seed hostnames for peer discovery. |
 | `messageMagic` | no | `string` | Per-network override for the chain-level `messageMagic`. Rarely needed. |
-| `hashFunction` | no | `string` | Name of one of the functions in the chain's `algorithms`. Used by `Hash.forNetwork(buf, network)` for PoW-style hashing. |
+| `supportsIPv6` | no | `boolean` | Opt-in flag for `ProRegTxPayload.service` to accept `[ipv6]:port` strings. Default `false`. |
 
 > All numeric fields are interpreted as integers. Hexadecimal literals like `0x32` and decimal `50` are equivalent. Use whichever the source code uses.
-
-### Hash algorithms (`algorithms`)
-
-Each entry is a function `(buf: Buffer) => Buffer`. The library calls it via `Hash.forNetwork(buf, network)` when the network's `hashFunction` matches the entry's name.
-
-Common algorithms:
-
-- **SHA-256d** (Bitcoin): SHA-256 applied twice. Use Node's built-in `crypto` module.
-- **X11** (Dash, MaximusChain): chain of 11 hashes. Use `@dashevo/x11-hash-js`.
-- **Scrypt** (Litecoin): use Node's `crypto.scryptSync` with the chain's N/r/p parameters.
-- **Keccak-256** (Ethereum-style): the `keccak256` package or Node 22's `crypto.hash('sha3-256', ..., 'hex')` after manual padding.
-
-If the chain uses no PoW (PoS-only), you can omit `hashFunction` and the `algorithms` block. `Hash.forNetwork` will fall back to whatever algorithm was registered first.
 
 ## Where to find the values
 
@@ -101,7 +88,6 @@ Most UTXO chains are derived from Bitcoin Core, so the source file is usually `s
 | `port` | `nDefaultPort` | `8333` |
 | `dnsSeeds` | `vSeeds` array | `["seed.bitcoin.sipa.be", ...]` |
 | `messageMagic` | `strMessageMagic` in `src/util/message.cpp` | `"Bitcoin Signed Message:\n"` |
-| `hashFunction` | `consensus.powAlgorithm` or `GetAlgorithm()` in `src/pow.cpp` | `"sha256d"` |
 
 For Dash-style forks, look in `src/chainparams.cpp` and `src/chainparamsbase.cpp`. The 256-bit HD variants come from DIP-14 (`docs/dips/dip-14`).
 
@@ -116,28 +102,6 @@ A few checks to confirm the values you gathered are consistent:
 
 If the prefix letter does not match, you probably picked the wrong byte from `base58Prefixes`.
 
-## Implementing the hash algorithm
-
-```javascript
-// X11 (already provided by the maximus chain, copy the pattern)
-const x11hash = require('@dashevo/x11-hash-js');
-const x11 = (buf) => x11hash.digest(buf, 1, 1);
-
-// SHA-256d (Bitcoin, no extra dependency)
-const crypto = require('crypto');
-const sha256d = (buf) =>
-  crypto
-    .createHash('sha256')
-    .update(crypto.createHash('sha256').update(buf).digest())
-    .digest();
-
-// Scrypt (Litecoin, with the Litecoin-specific N=1024, r=1, p=1)
-const scrypt = (buf) =>
-  crypto.scryptSync(buf, buf, 32, { N: 1024, r: 1, p: 1, maxmem: 33554432 });
-```
-
-If the chain uses a hash that has no npm package yet (rare), wrap a native or WebAssembly implementation in a function with the same signature.
-
 ## Path A — Built-in (modify the repo)
 
 1. Create `lib/chains/<name>.js`:
@@ -145,17 +109,9 @@ If the chain uses a hash that has no npm package yet (rare), wrap a native or We
    ```javascript
    'use strict';
 
-   var x11hash = require('@dashevo/x11-hash-js');
-
    module.exports = {
      name: 'mychain',
      messageMagic: 'MyChain Signed Message:\n',
-
-     algorithms: {
-       x11: function (buf) {
-         return x11hash.digest(buf, 1, 1);
-       },
-     },
 
      livenet: {
        name: 'livenet',
@@ -169,7 +125,6 @@ If the chain uses a hash that has no npm package yet (rare), wrap a native or We
        port: 9999,
        dnsSeeds: ['seed.mychain.io'],
        messageMagic: 'MyChain Signed Message:\n',
-       hashFunction: 'x11',
      },
 
      testnet: {
@@ -183,7 +138,6 @@ If the chain uses a hash that has no npm package yet (rare), wrap a native or We
        port: 19999,
        dnsSeeds: [],
        messageMagic: 'MyChain Signed Message:\n',
-       hashFunction: 'x11',
      },
    };
    ```
@@ -193,13 +147,14 @@ If the chain uses a hash that has no npm package yet (rare), wrap a native or We
    ```javascript
    loadBuiltInChain('maximus');
    loadBuiltInChain('osmium');
+   loadBuiltInChain('filopow');
    loadBuiltInChain('mychain');
    ```
 
    Or, equivalently:
 
    ```javascript
-   ['maximus', 'osmium', 'mychain'].forEach(loadBuiltInChain);
+   ['maximus', 'osmium', 'filopow', 'mychain'].forEach(loadBuiltInChain);
    ```
 
 3. Add tests covering at minimum: address generation, message sign/verify, HD derivation, network round-trip.
@@ -216,9 +171,6 @@ const multichain = require('@maximus-chain/multichain-lib');
 multichain.registerChain('mychain', {
   name: 'mychain',
   messageMagic: 'MyChain Signed Message:\n',
-  algorithms: {
-    x11: (buf) => require('@dashevo/x11-hash-js').digest(buf, 1, 1),
-  },
   livenet: {
     name: 'livenet',
     pubkeyhash: 0x32,
@@ -226,7 +178,6 @@ multichain.registerChain('mychain', {
     scripthash: 0x05,
     xpubkey: 0x488b21e,
     xprivkey: 0x488ade4,
-    hashFunction: 'x11',
   },
   testnet: {
     name: 'testnet',
@@ -235,78 +186,37 @@ multichain.registerChain('mychain', {
     scripthash: 0x0c,
     xpubkey: 0x043587cf,
     xprivkey: 0x04358394,
-    hashFunction: 'x11',
   },
 });
 
 const mine = multichain.create('mychain');
 console.log(mine.Networks.livenet.name); // 'livenet'
-console.log(mine.crypto.Hash.list());   // ['x11']
 ```
 
-The config shape is identical to the built-in path. Each chain's hash
-registry is isolated from every other chain's — there is no global
-registry to register algorithms on independently of a chain.
+The config shape is identical to the built-in path.
 
-## Full example: Litecoin
+## Registering a custom hash algorithm on a chain
+
+The chain's `crypto.Hash` registry exposes the standard Bitcoin/Dash hashes. If you need to hash arbitrary payloads (chain-specific PoW header hash, custom HMAC scheme, etc.), register your own algorithm at runtime:
 
 ```javascript
-// lib/chains/litecoin.js
-'use strict';
+const filopow = multichain.create('filopow');
 
-var crypto = require('crypto');
+// Register a chain-specific algorithm. The contract is (buf: Buffer) => Buffer.
+filopow.crypto.Hash.register('kawpow_marker', function (buf) {
+  // Production callers would shell out to a native binding here, e.g.
+  // return require('foundation-kawpow').hashOne(headerHash, nonce, height, ...);
+  return require('crypto').createHash('sha256').update(buf).digest();
+});
 
-function scrypt(buf) {
-  return crypto.scryptSync(buf, buf, 32, {
-    N: 1024,
-    r: 1,
-    p: 1,
-    maxmem: 33554432,
-  });
-}
+// List every algorithm registered on this chain (built-in hashes are not listed).
+console.log(filopow.crypto.Hash.list()); // ['kawpow_marker']
 
-module.exports = {
-  name: 'litecoin',
-  messageMagic: 'Litecoin Signed Message:\n',
-
-  algorithms: {
-    scrypt: scrypt,
-  },
-
-  livenet: {
-    name: 'livenet',
-    alias: ['mainnet'],
-    pubkeyhash: 0x30,
-    privatekey: 0xb0,
-    scripthash: 0x32,
-    xpubkey: 0x019da462,
-    xprivkey: 0x019d9cfe,
-    networkMagic: 0xfbc0b6db,
-    port: 9333,
-    dnsSeeds: [
-      'dnsseed.litecointools.com',
-      'seed.litecointools.com',
-      'litecoin.lukechilds.co',
-    ],
-    messageMagic: 'Litecoin Signed Message:\n',
-    hashFunction: 'scrypt',
-  },
-
-  testnet: {
-    name: 'testnet',
-    pubkeyhash: 0x6f,
-    privatekey: 0xef,
-    scripthash: 0xc4,
-    xpubkey: 0x0436f6e1,
-    xprivkey: 0x0436ef7d,
-    networkMagic: 0xfdd2c8f1,
-    port: 19335,
-    dnsSeeds: [],
-    messageMagic: 'Litecoin Signed Message:\n',
-    hashFunction: 'scrypt',
-  },
-};
+// Look up and call it.
+const h = filopow.crypto.Hash.get('kawpow_marker')(Buffer.from('header', 'utf8'));
 ```
+
+Each chain's registry is fully isolated — registering on `filopow.crypto.Hash` does not affect `maximus.crypto.Hash`.
 
 ## Verification checklist
 
@@ -317,7 +227,6 @@ After adding a chain (built-in or runtime), run this minimum set of checks:
 - [ ] `new instance.PrivateKey('livenet').toAddress().toString()` returns a valid address (verify on the chain's explorer)
 - [ ] `new instance.Message('hi').sign(pk)` followed by `verify(addr, sig)` returns `true`
 - [ ] `instance.HDPrivateKey.fromSeed(seed, instance.Networks.livenet).deriveChild("m/44'/2'/0'/0/0").privateKey.toAddress()` returns a deterministic address
-- [ ] If `hashFunction` is set, `instance.crypto.Hash.forNetwork(Buffer.from('test'), instance.Networks.livenet)` produces the same output as a reference implementation
 - [ ] `instance.Networks.enableRegtest()` switches port/magic/dnsSeeds to regtest values
 
 If any of these fail, double-check the corresponding field in the chain config against the values in `chainparams.cpp`.
@@ -326,7 +235,6 @@ If any of these fail, double-check the corresponding field in the chain config a
 
 - **Wrong `xpubkey`/`xprivkey`** → HD keys deserialize incorrectly or are rejected.
 - **Missing trailing `\n` in `messageMagic`** → signatures fail verification on the chain's reference implementation.
-- **`hashFunction` set but algorithm not registered** → `Hash.forNetwork` throws `Unknown hash algorithm`.
 - **Putting `xpubkey256bit` without `xprivkey256bit`** (or vice versa) → HD key validation logic (`lib/hdpublickey.js:337-340`) rejects otherwise valid keys.
 - **Confusing `networkMagic` (uint32) with the full P2P message header (4 bytes)** → the library takes only the integer and serializes it as a 4-byte little-endian buffer. Check that the daemon agrees on the byte order.
 - **Forgetting that the testnet is registered with `noStaticPort/NetworkMagic/DnsSeeds`** → the factory passes these flags automatically so the regtest-aware getters in `lib/networks.js` work. Consumers do not need to know about this.

@@ -1,6 +1,6 @@
 {
   "name": "@maximus-chain/multichain-lib",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "description": "A multi-chain cryptocurrency primitives library. Built-in support for MaximusChain; register custom chains.",
   "author": "MaximusChain",
   "main": "index.cjs",
@@ -24,6 +24,11 @@
       "types": "./typings/chains/osmium.d.ts",
       "import": "./lib/chains/osmium.js",
       "require": "./lib/chains/osmium.js"
+    },
+    "./chains/filopow": {
+      "types": "./typings/chains/filopow.d.ts",
+      "import": "./lib/chains/filopow.js",
+      "require": "./lib/chains/filopow.js"
     }
   },
   "types": "index.d.ts",
@@ -80,7 +85,6 @@
   "homepage": "https://github.com/Maximus-Chain/multichain-lib",
   "dependencies": {
     "@dashevo/bls": "^1.3.6",
-    "@dashevo/x11-hash-js": "^1.0.2",
     "bloom-filter": "^0.2.0",
     "bn.js": "^5.2.3",
     "bs58": "^6.0.0",
