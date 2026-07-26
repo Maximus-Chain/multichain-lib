@@ -148,6 +148,15 @@
 
 ### Added
 
+- **`fewbit` chain support.** Adds `multichain.create('fewbit')` with
+  livenet (P2P magic "fbc.", prefix `F`, port 1155) and testnet (same
+  P2P magic, prefix `f`, port 11551). Source:
+  <https://github.com/fewbit-network/Core-Wallet>. Like Maximus and
+  Osmium, Fewbit inherits the Dash-style `"DarkCoin Signed Message:\n"`
+  message magic, so the lib reuses it for both networks. GhostRider
+  (PoW adapted from Raptoreum) block-header hashing is out of scope;
+  consumers can register their own `ghostrider_*` algorithm via
+  `chainLib.crypto.Hash.register(name, fn)`.
 - **ESM named exports.** The webpack ESM bundle (and the Node ESM entry) now
   expose each piece of the root API as a named export:
   `create`, `chains`, `registerChain`, `createHashRegistry`, `version`,

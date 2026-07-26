@@ -29,6 +29,11 @@
       "types": "./typings/chains/filopow.d.ts",
       "import": "./lib/chains/filopow.js",
       "require": "./lib/chains/filopow.js"
+    },
+    "./chains/fewbit": {
+      "types": "./typings/chains/fewbit.d.ts",
+      "import": "./lib/chains/fewbit.js",
+      "require": "./lib/chains/fewbit.js"
     }
   },
   "types": "index.d.ts",

@@ -18,7 +18,7 @@ This library is a **UTXO-based, secp256k1, ECDSA-only** toolkit forked from the 
 | Chains with consensus tweaks | PoS-only, state rent, account abstraction, ZK-rollups | Validation rules and serialization diverge enough that porting is non-trivial | Extensive surgery across `lib/transaction/` and `lib/script/interpreter.js` |
 | Federated sidechains without standard chainparams | Liquid, RSK, some private chains | The chainparams values are not exposed or do not follow the Bitcoin convention | Manual reverse-engineering of the source |
 
-If your target chain is a Bitcoin-like UTXO chain (Bitcoin forks, Litecoin forks, Dash forks, Bitcoin Cash, Dogecoin, Ravencoin forks, filopow, etc.), it fits this library with configuration only. Proceed below.
+If your target chain is a Bitcoin-like UTXO chain (Bitcoin forks, Litecoin forks, Dash forks, Bitcoin Cash, Dogecoin, Ravencoin forks, filopow, fewbit, etc.), it fits this library with configuration only. Proceed below.
 
 ## Scope: addresses, keys, transactions. Not block validation.
 
@@ -148,13 +148,14 @@ If the prefix letter does not match, you probably picked the wrong byte from `ba
    loadBuiltInChain('maximus');
    loadBuiltInChain('osmium');
    loadBuiltInChain('filopow');
+   loadBuiltInChain('fewbit');
    loadBuiltInChain('mychain');
    ```
 
    Or, equivalently:
 
    ```javascript
-   ['maximus', 'osmium', 'filopow', 'mychain'].forEach(loadBuiltInChain);
+   ['maximus', 'osmium', 'filopow', 'fewbit', 'mychain'].forEach(loadBuiltInChain);
    ```
 
 3. Add tests covering at minimum: address generation, message sign/verify, HD derivation, network round-trip.

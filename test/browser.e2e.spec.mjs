@@ -29,6 +29,7 @@ test.describe('Browser ESM Bundle Tests', () => {
         chainsContainsMaximus: m.chains().indexOf('maximus') >= 0,
         chainsContainsOsmium: m.chains().indexOf('osmium') >= 0,
         chainsContainsFilopow: m.chains().indexOf('filopow') >= 0,
+        chainsContainsFewbit: m.chains().indexOf('fewbit') >= 0,
         chainHashRegistryStartsEmpty: lib.crypto.Hash.list().length === 0,
         hasAddress: typeof lib.Address !== 'undefined',
         hasPublicKey: typeof lib.PublicKey !== 'undefined',
@@ -45,6 +46,7 @@ test.describe('Browser ESM Bundle Tests', () => {
     expect(result.chainsContainsMaximus).toBe(true);
     expect(result.chainsContainsOsmium).toBe(true);
     expect(result.chainsContainsFilopow).toBe(true);
+    expect(result.chainsContainsFewbit).toBe(true);
     expect(result.chainHashRegistryStartsEmpty).toBe(true);
     expect(result.hasAddress).toBe(true);
     expect(result.hasPublicKey).toBe(true);
@@ -286,7 +288,7 @@ test.describe('Browser ESM Bundle Tests', () => {
     expect(result.hasCreateHashRegistry).toBe(true);
     expect(result.hasVersion).toBe(true);
     expect(result.hasDefault).toBe(true);
-    expect(result.chainsList).toEqual(['maximus', 'osmium', 'filopow']);
+    expect(result.chainsList).toEqual(['maximus', 'osmium', 'filopow', 'fewbit']);
     expect(result.canInstantiateViaNamedImport).toBe(true);
   });
 });
