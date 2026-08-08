@@ -38,6 +38,25 @@ export interface ChainConfig {
   livenet: NetworkParameters;
   /** Testnet Network parameters. */
   testnet: NetworkParameters;
+  /**
+   * Per-payload version overrides. Lets a chain declare which
+   * `CURRENT_VERSION` its special-transaction payloads default to (and
+   * what `validate()` accepts). When omitted, payloads default to the
+   * Dash-derived version 2 — which is **rejected** by chains like
+   * FewBit that only support version 1 (see
+   * `fewbit-network/Core-Wallet` `src/evo/providertx.h`).
+   */
+  payloadVersions?: {
+    /** Default and only accepted `ProRegTx.version` for this chain. */
+    proRegTx?: number;
+  };
+  /**
+   * When `true`, `ProRegTxPayload#validate()` rejects any payload whose
+   * `type` is not `0` (`MASTERNODE_TYPE_BASIC`). FewBit Core rejects
+   * `type !== 0` in `CheckProRegTx`, so enabling this flag fails fast
+   * on the client side instead of relying on the daemon.
+   */
+  enforceMasternodeTypeBasic?: boolean;
 }
 
 export interface NetworkParameters {

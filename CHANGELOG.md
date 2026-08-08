@@ -157,6 +157,22 @@
   (PoW adapted from Raptoreum) block-header hashing is out of scope;
   consumers can register their own `ghostrider_*` algorithm via
   `chainLib.crypto.Hash.register(name, fn)`.
+- **Chain-aware `ProRegTxPayload.version` defaults.** `ChainConfig` gains
+  an optional `payloadVersions?: { proRegTx?: number }` field. Built-in
+  chains (and any chain registered via `registerChain`) can now declare
+  which `ProRegTx.version` is accepted by their Core. The lib's default
+  stays at `2` (Dash-compatible) when omitted. `new chainLib.ProRegTxPayload()`
+  picks the configured value, and consumers can still pass an explicit
+  `version` per payload. Fewbit sets `payloadVersions.proRegTx = 1` —
+  matching `CProRegTx::CURRENT_VERSION = 1` in
+  `fewbit-network/Core-Wallet/src/evo/providertx.h`.
+- **Optional strict `type === 0` enforcement for `ProRegTxPayload`.**
+  `ChainConfig` gains an optional `enforceMasternodeTypeBasic?: boolean`
+  flag. When `true`, `ProRegTxPayload#validate()` rejects any payload
+  whose `type` is not `0` (`MASTERNODE_TYPE_BASIC`), mirroring FewBit
+  Core's `CheckProRegTx` (`if (ptx.nType != 0) state.Invalid(...)`).
+  Fewbit enables this flag so client-side serialization fails fast
+  instead of producing a payload the daemon will reject.
 - **ESM named exports.** The webpack ESM bundle (and the Node ESM entry) now
   expose each piece of the root API as a named export:
   `create`, `chains`, `registerChain`, `createHashRegistry`, `version`,

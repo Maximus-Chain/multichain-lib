@@ -197,4 +197,64 @@ describe('Fewbit chain', function () {
       fewbit.Networks.testnet.port.should.equal(11551);
     });
   });
+
+  describe('ProRegTxPayload chain binding', function () {
+    var multichain = require('../../');
+    var proRegTxFixture = require('../fixtures/payload/proregtxpayload');
+
+    function buildFewbitOptions() {
+      var json = proRegTxFixture.getProRegPayloadJSON();
+      var fewbitPayoutAddress = new fewbit.PrivateKey('livenet')
+        .toAddress()
+        .toString();
+      return {
+        collateralHash: json.collateralHash,
+        collateralIndex: json.collateralIndex,
+        service: json.service,
+        keyIDOwner: json.keyIDOwner,
+        pubKeyOperator: json.pubKeyOperator,
+        keyIDVoting: json.keyIDVoting,
+        operatorReward: json.operatorReward,
+        payoutAddress: fewbitPayoutAddress,
+        inputsHash: json.inputsHash,
+      };
+    }
+
+    it('should default ProRegTxPayload.version to 1 on fewbit', function () {
+      var payload = new fewbit.ProRegTxPayload();
+      payload.version.should.equal(1);
+    });
+
+    it('should serialize a v1, type=0 fewbit ProRegTxPayload', function () {
+      var payload = new fewbit.ProRegTxPayload(
+        Object.assign(buildFewbitOptions(), { type: 0 })
+      );
+      var buf = payload.toBuffer();
+      // version(1) + type(0) + mode(0) all little-endian uint16
+      buf.readUInt16LE(0).should.equal(1); // version
+      buf.readUInt16LE(2).should.equal(0); // type
+      buf.readUInt16LE(4).should.equal(0); // mode
+    });
+
+    it('should reject a fewbit ProRegTxPayload with type=1', function () {
+      var payload = new fewbit.ProRegTxPayload(
+        Object.assign(buildFewbitOptions(), { type: 1 })
+      );
+      (function () {
+        payload.validate();
+      }).should.throw(/MASTERNODE_TYPE_BASIC/);
+    });
+
+    it('should keep its own ProRegTxPayload class per create() call', function () {
+      var a = multichain.create('fewbit');
+      var b = multichain.create('fewbit');
+      a.ProRegTxPayload.should.not.equal(b.ProRegTxPayload);
+      a.ProRegTxPayload.should.not.equal(multichain.create('maximus').ProRegTxPayload);
+    });
+
+    it('should not affect maximus ProRegTxPayload defaults', function () {
+      var maximus = multichain.create('maximus');
+      new maximus.ProRegTxPayload().version.should.equal(2);
+    });
+  });
 });

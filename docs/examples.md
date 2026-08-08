@@ -133,6 +133,31 @@ tx.version = 3;
 tx.type = 1;
 ```
 
+## Per-chain ProRegTxPayload defaults (e.g. Fewbit)
+
+Fewbit Core only accepts `CProRegTx::CURRENT_VERSION = 1` and rejects
+any `type != 0`. The lib's `ProRegTxPayload` on the fewbit chain reflects
+both constraints out of the box:
+
+```javascript
+const fewbit = multichain.create('fewbit');
+
+const payload = new fewbit.ProRegTxPayload();
+// payload.version === 1   (FewBit Core's CURRENT_VERSION)
+// payload.type    === undefined until the caller sets it
+
+payload.type = 0; // MASTERNODE_TYPE_BASIC — required on Fewbit
+payload.collateralHash = '...';
+// ... rest of the fields ...
+payload.toBuffer(); // validate() enforces type === 0; throws otherwise
+```
+
+The same fields still apply to other chains; `maximus` / `osmium` /
+`filopow` default to Dash's `version = 2` and don't enforce `type === 0`.
+Custom chains declared via `multichain.registerChain(name, config)` can
+opt in by setting `payloadVersions.proRegTx` and/or
+`enforceMasternodeTypeBasic: true` on the config.
+
 ## Sign and verify a message
 
 ```javascript

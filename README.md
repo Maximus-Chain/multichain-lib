@@ -420,6 +420,24 @@ tx.version = 3;
 tx.type = 1;
 ```
 
+#### Per-chain `ProRegTxPayload` defaults
+
+The default `version` and the strictness of `type` validation come from
+the chain's `ChainConfig`:
+
+```javascript
+multichain.create('maximus').ProRegTxPayload; // version defaults to 2
+multichain.create('fewbit').ProRegTxPayload;  // version defaults to 1
+```
+
+Built-in chains that diverge from the Dash `version = 2` declare
+`payloadVersions.proRegTx` in their chain config. Chains whose Core
+rejects any `type !== 0` (`MASTERNODE_TYPE_BASIC`) can opt in to the
+strict check via `enforceMasternodeTypeBasic: true` (Fewbit enables
+this — `CheckProRegTx` in `fewbit-network/Core-Wallet` rejects
+`ptx.nType != 0`). Consumers can still override `version` and `type`
+per payload.
+
 ### UnspentOutput
 
 ```javascript

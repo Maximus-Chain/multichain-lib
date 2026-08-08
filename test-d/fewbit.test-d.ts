@@ -13,6 +13,11 @@ import type { ChainLib } from '../typings/chain';
 // The Config is a structural superset of ChainConfig with a narrow `name`.
 const _name: 'fewbit' = ({} as FewbitConfig).name;
 
+// FewbitConfig pins the chain-aware ProRegTx version and the
+// type=0 enforcement flag.
+const _payloadVersion: 1 = ({} as FewbitConfig).payloadVersions.proRegTx;
+const _enforceBasic: true = ({} as FewbitConfig).enforceMasternodeTypeBasic;
+
 // The ChainLib is a structural ChainLib.
 const _check: ChainLib = {} as FewbitChainLib;
 
