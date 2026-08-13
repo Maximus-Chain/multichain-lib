@@ -1,5 +1,43 @@
 # Changelog
 
+## 4.0.1
+
+### Fixed
+
+- **`Transaction.setExtraPayload` rejected every chain-bound `ProRegTxPayload` with `Payload doesn't match the transaction type`.**
+  Commit `74399b3` (4.0.0) added an optional `config` argument to
+  `createPayloadClass(Networks, config)` and `createProRegTxPayloadClass(Networks, config)`
+  so per-chain `payloadVersions.proRegTx` and `enforceMasternodeTypeBasic`
+  flags (FewBit) could change the `ProRegTx` defaults. The cache key was
+  changed from `Networks` to `[Networks, config]` — a fresh array on every
+  call, so the WeakMap never hit and every invocation built a new namespace.
+
+  `createTransactionClass(Networks)` still called
+  `createPayloadClass(Networks)` without the config, so the `Payload`
+  namespace captured in the `Transaction` class's closure ended up being
+  a *different* namespace than the one `_create.js` later assigned to
+  `Transaction.Payload` and re-exported as `ProRegTxPayload`. The
+  `instanceof` check inside `setExtraPayload` then failed because the
+  user-facing payload was an instance of a `ProRegTxPayload` class the
+  `Transaction` class had never seen.
+
+  The bug was independent of the fewbit-specific logic, so MAXI (and every
+  other built-in chain) hit it too: `mc.Transaction.setExtraPayload(new mc.ProRegTxPayload(...))`
+  always threw. This release:
+
+  - Propagates `config` through `createTransactionClass(Networks, config)`
+    so the internal `Payload` namespace is built with the same arguments
+    the user-facing one is built with.
+  - Replaces the broken `[Networks, config]` cache key in
+    `createPayloadClass` and `createProRegTxPayloadClass` with a stable
+    `WeakMap<Networks, Map<config, namespace>>`, so `(Networks, config)`
+    always returns the same instance.
+  - Adds regression tests covering the
+    `mc.ProRegTxPayload` → `tx.setExtraPayload` round-trip on Maximus
+    (Dash-style, `type: 1`) and Fewbit (strict `type: 0`), plus an
+    identity check that `mc.Transaction.Payload.ProRegTxPayload ===
+    mc.ProRegTxPayload`.
+
 ## 4.0.0
 
 ### Breaking changes

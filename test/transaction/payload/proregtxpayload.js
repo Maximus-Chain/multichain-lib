@@ -247,4 +247,77 @@ describe('ProRegTxPayload', function () {
       expect(payload.type).to.equal(undefined);
     });
   });
+
+  describe('setExtraPayload round-trip (regression for 4.0.0)', function () {
+    // Commit 74399b3 changed createPayloadClass(Networks, config) to use
+    // [Networks, config] as a WeakMap key, but didn't propagate `config`
+    // to createTransactionClass. That left the Transaction class with a
+    // different ProRegTxPayload class than the one returned by
+    // mc.ProRegTxPayload, so setExtraPayload's instanceof check threw
+    // "Payload doesn't match the transaction type" on every chain (MAXI
+    // included) even though the per-chain logic was untouched.
+
+    function buildProRegTxPayloadOptions(json, payoutAddress) {
+      return {
+        type: 1,
+        mode: 0,
+        collateralHash: json.collateralHash,
+        collateralIndex: json.collateralIndex,
+        service: json.service,
+        keyIDOwner: json.keyIDOwner,
+        pubKeyOperator: json.pubKeyOperator,
+        keyIDVoting: json.keyIDVoting,
+        operatorReward: json.operatorReward,
+        payoutAddress: payoutAddress,
+        inputsHash: json.inputsHash,
+      };
+    }
+
+    it('should accept a maximus ProRegTxPayload via setExtraPayload', function () {
+      var maximus = multichain.create('maximus');
+      var payoutAddress = new maximus.PrivateKey('livenet').toAddress().toString();
+      var payload = new maximus.ProRegTxPayload(
+        buildProRegTxPayloadOptions(
+          proRegTxFixture.getProRegPayloadJSON(),
+          payoutAddress
+        )
+      );
+      var tx = new maximus.Transaction();
+      tx.type = 1; // TRANSACTION_PROVIDER_REGISTER
+
+      expect(function () {
+        tx.setExtraPayload(payload);
+      }).to.not.throw();
+      expect(tx.extraPayload).to.equal(payload);
+    });
+
+    it('should accept a fewbit ProRegTxPayload (type=0) via setExtraPayload', function () {
+      var fewbit = multichain.create('fewbit');
+      var payoutAddress = new fewbit.PrivateKey('livenet').toAddress().toString();
+      var opts = buildProRegTxPayloadOptions(
+        proRegTxFixture.getProRegPayloadJSON(),
+        payoutAddress
+      );
+      opts.type = 0; // MASTERNODE_TYPE_BASIC (required on fewbit)
+      var payload = new fewbit.ProRegTxPayload(opts);
+      var tx = new fewbit.Transaction();
+      tx.type = 1;
+
+      expect(function () {
+        tx.setExtraPayload(payload);
+      }).to.not.throw();
+      expect(tx.extraPayload).to.equal(payload);
+    });
+
+    it('should keep ProRegTxPayload stable across repeated create() calls on the same chain', function () {
+      // If the cache key were unstable, two create('maximus') calls would
+      // hand out different ProRegTxPayload classes and the round-trip
+      // above would still work, but cross-instance identity would not.
+      // Lock in identity within a single instance.
+      var mc = multichain.create('maximus');
+      expect(mc.Transaction.Payload.ProRegTxPayload).to.equal(
+        mc.ProRegTxPayload
+      );
+    });
+  });
 });
