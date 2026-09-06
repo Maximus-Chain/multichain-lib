@@ -133,10 +133,10 @@ describe('ProRegTxPayload', function () {
       expect(payload.version).to.equal(2);
     });
 
-    it('should default version to 2 on filopow (Dash-style)', function () {
+    it('should default version to 1 on filopow (FILOPOW Core accepts only v1)', function () {
       var filopow = multichain.create('filopow');
       var payload = new filopow.ProRegTxPayload();
-      expect(payload.version).to.equal(2);
+      expect(payload.version).to.equal(1);
     });
 
     it('should still let the caller override the default version explicitly', function () {
@@ -245,6 +245,78 @@ describe('ProRegTxPayload', function () {
       // type is undefined — strict enforcement should not fire because the
       // caller never set it. Other validate() checks still apply.
       expect(payload.type).to.equal(undefined);
+    });
+  });
+
+  describe('filopow type=0 / mode=0 enforcement', function () {
+    var filopow;
+    var filopowBaseOptions;
+
+    beforeEach(function () {
+      filopow = multichain.create('filopow');
+      var json = proRegTxFixture.getProRegPayloadJSON();
+      // Build a filopow payoutAddress so the constructor's Script.fromAddress
+      // round-trip decodes on the filopow network.
+      var filopowPayoutAddress = new filopow.PrivateKey('livenet')
+        .toAddress()
+        .toString();
+      filopowBaseOptions = {
+        collateralHash: json.collateralHash,
+        collateralIndex: json.collateralIndex,
+        service: json.service,
+        keyIDOwner: json.keyIDOwner,
+        pubKeyOperator: json.pubKeyOperator,
+        keyIDVoting: json.keyIDVoting,
+        operatorReward: json.operatorReward,
+        payoutAddress: filopowPayoutAddress,
+        inputsHash: json.inputsHash,
+      };
+    });
+
+    it('should accept a filopow payload with type=0 and mode=0', function () {
+      var payload = new filopow.ProRegTxPayload(
+        Object.assign({}, filopowBaseOptions, { type: 0, mode: 0 })
+      );
+      expect(function () {
+        payload.validate();
+      }).to.not.throw();
+    });
+
+    it('should reject a filopow payload with type=1 (MASTERNODE_TYPE_HP)', function () {
+      var payload = new filopow.ProRegTxPayload(
+        Object.assign({}, filopowBaseOptions, { type: 1, mode: 0 })
+      );
+      expect(function () {
+        payload.validate();
+      }).to.throw(/MASTERNODE_TYPE_BASIC/);
+    });
+
+    it('should reject a filopow payload with mode != 0', function () {
+      var payload = new filopow.ProRegTxPayload(
+        Object.assign({}, filopowBaseOptions, { type: 0, mode: 1 })
+      );
+      expect(function () {
+        payload.validate();
+      }).to.throw(/Expected mode to be 0/);
+    });
+
+    it('should reject a non-integer filopow mode (sanity check on the new check)', function () {
+      var payload = new filopow.ProRegTxPayload(
+        Object.assign({}, filopowBaseOptions, { type: 0, mode: 'foo' })
+      );
+      expect(function () {
+        payload.validate();
+      }).to.throw(/unsigned integer/);
+    });
+
+    it('should skip type and mode validation entirely when both are undefined', function () {
+      var payload = new filopow.ProRegTxPayload(
+        Object.assign({}, filopowBaseOptions)
+      );
+      // type and mode are undefined — strict enforcement should not fire
+      // because the caller never set them. Other validate() checks still apply.
+      expect(payload.type).to.equal(undefined);
+      expect(payload.mode).to.equal(undefined);
     });
   });
 

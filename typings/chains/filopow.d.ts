@@ -6,6 +6,25 @@ import { Transaction } from '../transaction/Transaction';
  */
 export interface FilopowConfig extends ChainConfig {
   name: 'filopow';
+  /**
+   * FILOPOW's `CProRegTx::CURRENT_VERSION` is `1` (see
+   * filoproject/filopow `src/evo/providertx.h`), so the lib defaults
+   * `ProRegTxPayload#version` to `1` instead of Dash's `2`.
+   */
+  payloadVersions: {
+    proRegTx: 1;
+  };
+  /**
+   * `true`. FILOPOW Core rejects any `ProRegTxPayload` whose `type`
+   * is not `0` (`MASTERNODE_TYPE_BASIC`). `validate()` mirrors that
+   * constraint on the client side.
+   */
+  enforceMasternodeTypeBasic: true;
+  /**
+   * `true`. FILOPOW Core rejects any `ProRegTxPayload` whose `mode`
+   * is not `0`. `validate()` mirrors that constraint on the client side.
+   */
+  enforceMasternodeModeBasic: true;
 }
 
 export type FilopowChainLib = ChainLib<FilopowConfig>;

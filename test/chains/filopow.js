@@ -183,4 +183,75 @@ describe('filopow chain', function () {
       filopow.Networks.testnet.port.should.equal(17767);
     });
   });
+
+  describe('ProRegTxPayload chain binding', function () {
+    var multichain = require('../../');
+    var proRegTxFixture = require('../fixtures/payload/proregtxpayload');
+
+    function buildFilopowOptions() {
+      var json = proRegTxFixture.getProRegPayloadJSON();
+      var filopowPayoutAddress = new filopow.PrivateKey('livenet')
+        .toAddress()
+        .toString();
+      return {
+        collateralHash: json.collateralHash,
+        collateralIndex: json.collateralIndex,
+        service: json.service,
+        keyIDOwner: json.keyIDOwner,
+        pubKeyOperator: json.pubKeyOperator,
+        keyIDVoting: json.keyIDVoting,
+        operatorReward: json.operatorReward,
+        payoutAddress: filopowPayoutAddress,
+        inputsHash: json.inputsHash,
+      };
+    }
+
+    it('should default ProRegTxPayload.version to 1 on filopow', function () {
+      var payload = new filopow.ProRegTxPayload();
+      payload.version.should.equal(1);
+    });
+
+    it('should serialize a v1, type=0, mode=0 filopow ProRegTxPayload', function () {
+      var payload = new filopow.ProRegTxPayload(
+        Object.assign(buildFilopowOptions(), { type: 0, mode: 0 })
+      );
+      var buf = payload.toBuffer();
+      // version(1) + type(0) + mode(0) all little-endian uint16
+      buf.readUInt16LE(0).should.equal(1); // version
+      buf.readUInt16LE(2).should.equal(0); // type
+      buf.readUInt16LE(4).should.equal(0); // mode
+    });
+
+    it('should reject a filopow ProRegTxPayload with type=1', function () {
+      var payload = new filopow.ProRegTxPayload(
+        Object.assign(buildFilopowOptions(), { type: 1, mode: 0 })
+      );
+      (function () {
+        payload.validate();
+      }).should.throw(/MASTERNODE_TYPE_BASIC/);
+    });
+
+    it('should reject a filopow ProRegTxPayload with mode != 0', function () {
+      var payload = new filopow.ProRegTxPayload(
+        Object.assign(buildFilopowOptions(), { type: 0, mode: 1 })
+      );
+      (function () {
+        payload.validate();
+      }).should.throw(/Expected mode to be 0/);
+    });
+
+    it('should keep its own ProRegTxPayload class per create() call', function () {
+      var a = multichain.create('filopow');
+      var b = multichain.create('filopow');
+      a.ProRegTxPayload.should.not.equal(b.ProRegTxPayload);
+      a.ProRegTxPayload.should.not.equal(
+        multichain.create('maximus').ProRegTxPayload
+      );
+    });
+
+    it('should not affect maximus ProRegTxPayload defaults', function () {
+      var maximus = multichain.create('maximus');
+      new maximus.ProRegTxPayload().version.should.equal(2);
+    });
+  });
 });

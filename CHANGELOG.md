@@ -184,7 +184,48 @@
 
 ## Unreleased
 
+### Fixed
+
+- **`filopow` `ProRegTxPayload` defaulted to the wrong wire format.**
+  FILOPOW Core (`filoproject/filopow` `src/evo/providertx.h`,
+  `providertx.cpp`) declares `CProRegTx::CURRENT_VERSION = 1` and rejects
+  any payload with `type !== 0` (`MASTERNODE_TYPE_BASIC`) or
+  `mode !== 0`. The built-in `filopow` chain was previously inheriting
+  Dash's defaults — `version = 2` — so `new filopow.ProRegTxPayload()`
+  produced a payload the daemon rejects with `bad-protx-version`, and
+  `type` / `mode` were only checked at the daemon level. This release:
+
+  - Adds `payloadVersions.proRegTx: 1` to `lib/chains/filopow.js` so
+    `ProRegTxPayload#version` defaults to FILOPOW's `CURRENT_VERSION`.
+  - Adds `enforceMasternodeTypeBasic: true` to `lib/chains/filopow.js`
+    and the existing `ProRegTxPayload#validate()` hook so client-side
+    serialization fails fast on `type !== 0` (`MASTERNODE_TYPE_BASIC`)
+    instead of producing a payload the daemon rejects with
+    `bad-protx-type`.
+  - Adds `enforceMasternodeModeBasic: true` to `lib/chains/filopow.js`
+    and a new `mode === 0` branch in `ProRegTxPayload#validate()` so
+    client-side serialization fails fast on `mode !== 0` instead of
+    producing a payload the daemon rejects with `bad-protx-mode`.
+  - Adds `enforceMasternodeModeBasic?: boolean` to `ChainConfig` in
+    `typings/chain.d.ts` and `FilopowConfig` in
+    `typings/chains/filopow.d.ts`, mirroring the existing
+    `enforceMasternodeTypeBasic` flag.
+
+- **`docs/examples.md` claimed `filopow` defaulted to Dash's
+  `version = 2`.** Updated to describe the corrected behavior
+  (`payloadVersions.proRegTx = 1`,
+  `enforceMasternodeTypeBasic: true`,
+  `enforceMasternodeModeBasic: true`).
+
 ### Added
+
+- **Optional strict `mode === 0` enforcement for `ProRegTxPayload`.**
+  `ChainConfig` gains an optional `enforceMasternodeModeBasic?: boolean`
+  flag. When `true`, `ProRegTxPayload#validate()` rejects any payload
+  whose `mode` is not `0`, mirroring FILOPOW Core's `CheckProRegTx`
+  (`if (ptx.nMode != 0) state.Invalid(...)`). FILOPOW enables this flag
+  so client-side serialization fails fast instead of producing a payload
+  the daemon will reject.
 
 - **`fewbit` chain support.** Adds `multichain.create('fewbit')` with
   livenet (P2P magic "fbc.", prefix `F`, port 1155) and testnet (same

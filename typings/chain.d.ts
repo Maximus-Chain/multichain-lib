@@ -57,6 +57,13 @@ export interface ChainConfig {
    * on the client side instead of relying on the daemon.
    */
   enforceMasternodeTypeBasic?: boolean;
+  /**
+   * When `true`, `ProRegTxPayload#validate()` rejects any payload whose
+   * `mode` is not `0`. FILOPOW's `CheckProRegTx` rejects `mode !== 0`
+   * with `bad-protx-mode`, so enabling this flag fails fast on the
+   * client side instead of relying on the daemon.
+   */
+  enforceMasternodeModeBasic?: boolean;
 }
 
 export interface NetworkParameters {

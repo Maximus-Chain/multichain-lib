@@ -152,11 +152,16 @@ payload.collateralHash = '...';
 payload.toBuffer(); // validate() enforces type === 0; throws otherwise
 ```
 
-The same fields still apply to other chains; `maximus` / `osmium` /
-`filopow` default to Dash's `version = 2` and don't enforce `type === 0`.
+The same fields still apply to other chains; `maximus` / `osmium`
+default to Dash's `version = 2` and don't enforce `type === 0`.
+`filopow` mirrors FILOPOW Core (`CProRegTx::CURRENT_VERSION = 1`,
+rejects `type !== 0` and `mode !== 0`), so the lib ships with
+`payloadVersions.proRegTx = 1`, `enforceMasternodeTypeBasic: true`, and
+`enforceMasternodeModeBasic: true` already declared on the chain config.
 Custom chains declared via `multichain.registerChain(name, config)` can
 opt in by setting `payloadVersions.proRegTx` and/or
-`enforceMasternodeTypeBasic: true` on the config.
+`enforceMasternodeTypeBasic: true` (and/or
+`enforceMasternodeModeBasic: true`) on the config.
 
 ## Sign and verify a message
 
