@@ -182,7 +182,7 @@
   existing UMD bundle test on port 8080 and adds the Vite fixture on
   port 5173, so both suites run in CI without manual orchestration.
 
-## Unreleased
+## 4.0.2
 
 ### Fixed
 
