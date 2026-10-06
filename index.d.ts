@@ -16,6 +16,7 @@ import { MaximusChainLib } from './typings/chains/maximus';
 import { OsmiumChainLib } from './typings/chains/osmium';
 import { FilopowChainLib } from './typings/chains/filopow';
 import { FewbitChainLib } from './typings/chains/fewbit';
+import { KerriganChainLib } from './typings/chains/kerrigan';
 
 /** Library version, e.g. `"v3.0.2"`. */
 export const version: string;
@@ -51,6 +52,7 @@ export function create(name: 'maximus'): MaximusChainLib;
 export function create(name: 'osmium'): OsmiumChainLib;
 export function create(name: 'filopow'): FilopowChainLib;
 export function create(name: 'fewbit'): FewbitChainLib;
+export function create(name: 'kerrigan'): KerriganChainLib;
 export function create(name: string): ChainLib;
 
 /**

@@ -1,8 +1,8 @@
 # Multichain Library
 
 A pure, multi-chain cryptocurrency primitives library for UTXO-based,
-secp256k1, ECDSA chains. Ships with built-in support for MaximusChain and
-Osmium, and lets you register any other compatible chain at runtime.
+secp256k1, ECDSA chains. Ships with built-in support for MaximusChain,
+Osmium, Filopow, FewBit and Kerrigan, and lets you register any other compatible chain at runtime.
 
 Every chain is fully isolated: `create(name)` returns a self-contained
 chain-lib (its own `Networks`, hash registry, and class closures), so two
@@ -130,7 +130,7 @@ Named imports are first-class: `create`, `chains`, `registerChain`,
 ```javascript
 import { create, chains } from '@maximus-chain/multichain-lib';
 
-console.log(chains()); // ['maximus', 'osmium']
+console.log(chains()); // ['maximus', 'osmium', 'filopow', 'fewbit', 'kerrigan']
 const maximus = create('maximus');
 const osmium = create('osmium');
 ```
