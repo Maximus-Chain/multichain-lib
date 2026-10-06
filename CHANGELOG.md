@@ -1,5 +1,20 @@
 # Changelog
 
+## 4.1.0
+
+### Added
+
+- **Kerrigan (`KRGN`) built-in chain.** `multichain.create('kerrigan')` for
+  [kerrigan-network/kerrigan](https://github.com/kerrigan-network/kerrigan)
+  (v1.3.2), a Dash fork with multi-algo PoW. Livenet addresses start with
+  `K` (pubkeyhash 45, P2P port 7120, magic `KRGN`), testnet with `k`
+  (pubkeyhash 107, port 17120, magic `krgt`). Message magic is the
+  Dash-inherited `DarkCoin Signed Message:\n`; HD versions are the Bitcoin
+  defaults (no DIP-14). ProRegTx keeps the Dash defaults (`version: 2`,
+  Regular or Evo types) because Kerrigan never activates V24.
+  Ships `lib/chains/kerrigan.js`, the `./chains/kerrigan` subpath export,
+  `KerriganChainLib` typings and the `create('kerrigan')` overload.
+
 ## 4.0.1
 
 ### Fixed
