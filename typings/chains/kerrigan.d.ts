@@ -6,6 +6,14 @@ import { Transaction } from '../transaction/Transaction';
  */
 export interface KerriganConfig extends ChainConfig {
   name: 'kerrigan';
+  /**
+   * `true`. Kerrigan Core still serializes the Evo ("BroodNode")
+   * platform fields in `CProRegTx` and rejects an Evo ProRegTx without
+   * a `platformNodeID`, so `ProRegTxPayload` (de)serializes
+   * `platformNodeID` / `platformP2PPort` / `platformHTTPPort` for
+   * `type === 1`.
+   */
+  proRegTxPlatformFields: true;
 }
 
 export type KerriganChainLib = ChainLib<KerriganConfig>;

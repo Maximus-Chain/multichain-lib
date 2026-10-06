@@ -49,6 +49,10 @@ A chain config is a plain JavaScript object. Top-level keys describe the chain; 
 | `messageMagic` | yes | `string` | Bytes prefixed to messages before signing. Usually ends with `\n`. |
 | `livenet` | yes | `object` | Configuration for the main network. See below. |
 | `testnet` | yes | `object` | Configuration for the test network. See below. |
+| `payloadVersions.proRegTx` | no | `number` | Default and only accepted `ProRegTx` version (FewBit = `1`). Defaults to Dash's `2`. |
+| `enforceMasternodeTypeBasic` | no | `boolean` | Reject `ProRegTx` payloads with `type !== 0` (FewBit). |
+| `enforceMasternodeModeBasic` | no | `boolean` | Reject `ProRegTx` payloads with `mode !== 0` (FILOPOW). |
+| `proRegTxPlatformFields` | no | `boolean` | Serialize the Evo platform fields (`platformNodeID`, P2P / HTTP ports) for `type === 1`, as Dash Core does. Set it when the chain's `CProRegTx` still has them (Kerrigan); Maximus / Osmium removed them. Check `src/evo/providertx.h` upstream. |
 
 ### Per-network (livenet and testnet)
 

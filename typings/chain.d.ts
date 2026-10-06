@@ -64,6 +64,14 @@ export interface ChainConfig {
    * client side instead of relying on the daemon.
    */
   enforceMasternodeModeBasic?: boolean;
+  /**
+   * When `true`, `ProRegTxPayload` (de)serializes the Evo platform fields
+   * (`platformNodeID`, `platformP2PPort`, `platformHTTPPort`) for
+   * `version >= 2` and `type === 1`, as Dash Core does. Maximus and
+   * Osmium removed those fields from the wire format, so it defaults to
+   * `false`; Kerrigan Core requires them.
+   */
+  proRegTxPlatformFields?: boolean;
 }
 
 export interface NetworkParameters {

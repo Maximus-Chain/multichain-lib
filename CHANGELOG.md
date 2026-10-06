@@ -14,6 +14,13 @@
   Regular or Evo types) because Kerrigan never activates V24.
   Ships `lib/chains/kerrigan.js`, the `./chains/kerrigan` subpath export,
   `KerriganChainLib` typings and the `create('kerrigan')` overload.
+- **`ChainConfig.proRegTxPlatformFields`.** Opt-in flag that makes
+  `ProRegTxPayload` (de)serialize, validate and JSON-encode the Evo platform
+  fields (`platformNodeID` + `platformP2PPort` / `platformHTTPPort`) for
+  `version >= 2` and `type === 1`, as Dash Core does. Kerrigan sets it
+  because its Core rejects an Evo ProRegTx without a `platformNodeID`
+  (`bad-protx-platform-nodeid`); Maximus and Osmium keep the fields off the
+  wire, so their payloads are unchanged.
 
 ## 4.0.1
 

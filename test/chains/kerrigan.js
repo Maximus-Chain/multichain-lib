@@ -215,19 +215,107 @@ describe('Kerrigan chain', function () {
       };
     }
 
+    var PLATFORM_NODE_ID = '00112233445566778899aabbccddeeff00112233';
+
+    function buildEvoOptions() {
+      return Object.assign(buildKerriganOptions(), {
+        type: 1,
+        platformNodeID: PLATFORM_NODE_ID,
+        platformP2PPort: 7121,
+        platformHTTPPort: 7122,
+      });
+    }
+
     it('should default ProRegTxPayload.version to 2 (Dash BasicBLS)', function () {
       new kerrigan.ProRegTxPayload().version.should.equal(2);
     });
 
     it('should serialize a v2, type=1 (Evo / BroodNode) payload', function () {
-      var payload = new kerrigan.ProRegTxPayload(
-        Object.assign(buildKerriganOptions(), { type: 1 })
-      );
+      var payload = new kerrigan.ProRegTxPayload(buildEvoOptions());
       payload.validate();
       var buf = payload.toBuffer();
       buf.readUInt16LE(0).should.equal(2); // version
       buf.readUInt16LE(2).should.equal(1); // type
       buf.readUInt16LE(4).should.equal(0); // mode
+    });
+
+    it('should write platformNodeID + P2P/HTTP ports after inputsHash for Evo', function () {
+      var evoBuf = new kerrigan.ProRegTxPayload(buildEvoOptions()).toBuffer({
+        skipSignature: true,
+      });
+      var regularBuf = new kerrigan.ProRegTxPayload(
+        Object.assign(buildKerriganOptions(), { type: 1 })
+      );
+      regularBuf.type = 0;
+      var baseBuf = regularBuf.toBuffer({ skipSignature: true });
+      // 20-byte node id + 2 x uint16 ports.
+      evoBuf.length.should.equal(baseBuf.length + 24);
+      // Last byte is the empty signature size, the 24 bytes before it are
+      // the platform fields (node id is stored reversed, like uint160).
+      var platform = evoBuf.slice(evoBuf.length - 25, evoBuf.length - 1);
+      Buffer.from(platform.slice(0, 20))
+        .reverse()
+        .toString('hex')
+        .should.equal(PLATFORM_NODE_ID);
+      platform.readUInt16LE(20).should.equal(7121);
+      platform.readUInt16LE(22).should.equal(7122);
+    });
+
+    it('should round-trip the platform fields through fromBuffer', function () {
+      var buf = new kerrigan.ProRegTxPayload(buildEvoOptions()).toBuffer();
+      // fromBuffer reverses hash slices in place, so keep the hex first.
+      var hex = buf.toString('hex');
+      var parsed = kerrigan.ProRegTxPayload.fromBuffer(buf);
+      parsed.type.should.equal(1);
+      parsed.platformNodeID.should.equal(PLATFORM_NODE_ID);
+      parsed.platformP2PPort.should.equal(7121);
+      parsed.platformHTTPPort.should.equal(7122);
+      parsed.toBuffer().toString('hex').should.equal(hex);
+    });
+
+    it('should round-trip an Evo ProRegTx through Transaction#toObject', function () {
+      var tx = new kerrigan.Transaction();
+      tx.setType(kerrigan.Transaction.TYPES.TRANSACTION_PROVIDER_REGISTER);
+      tx.setExtraPayload(new kerrigan.ProRegTxPayload(buildEvoOptions()));
+      var restored = new kerrigan.Transaction(tx.toObject());
+      restored.extraPayload.platformNodeID.should.equal(PLATFORM_NODE_ID);
+      restored.extraPayload.platformHTTPPort.should.equal(7122);
+    });
+
+    it('should include the platform fields in toJSON for Evo', function () {
+      var json = new kerrigan.ProRegTxPayload(buildEvoOptions()).toJSON({
+        network: 'livenet',
+      });
+      json.platformNodeID.should.equal(PLATFORM_NODE_ID);
+      json.platformP2PPort.should.equal(7121);
+      json.platformHTTPPort.should.equal(7122);
+    });
+
+    it('should reject an Evo payload without a 20-byte platformNodeID', function () {
+      var payload = new kerrigan.ProRegTxPayload(
+        Object.assign(buildKerriganOptions(), { type: 1 })
+      );
+      (function () {
+        payload.validate();
+      }).should.throw('platformNodeID');
+      payload.platformNodeID = 'abcd';
+      (function () {
+        payload.validate();
+      }).should.throw('platformNodeID');
+    });
+
+    it('should not write platform fields for Maximus Evo payloads', function () {
+      var maximus = multichain.create('maximus');
+      var options = buildEvoOptions();
+      options.payoutAddress = new maximus.PrivateKey('livenet')
+        .toAddress()
+        .toString();
+      var withPlatform = new maximus.ProRegTxPayload(options).toBuffer();
+      delete options.platformNodeID;
+      delete options.platformP2PPort;
+      delete options.platformHTTPPort;
+      var without = new maximus.ProRegTxPayload(options).toBuffer();
+      withPlatform.toString('hex').should.equal(without.toString('hex'));
     });
 
     it('should accept a type=0 (Regular) payload', function () {
@@ -240,9 +328,7 @@ describe('Kerrigan chain', function () {
     });
 
     it('should attach to a Transaction via setExtraPayload', function () {
-      var payload = new kerrigan.ProRegTxPayload(
-        Object.assign(buildKerriganOptions(), { type: 1 })
-      );
+      var payload = new kerrigan.ProRegTxPayload(buildEvoOptions());
       var tx = new kerrigan.Transaction();
       tx.setType(kerrigan.Transaction.TYPES.TRANSACTION_PROVIDER_REGISTER);
       tx.setExtraPayload(payload);
