@@ -69,6 +69,29 @@ describe('cross-chain isolation: Transaction / ProRegTxPayload', function () {
     payload.validate();
   });
 
+  it('Kerrigan accepts an IPv6 service string and round-trips the bytes', function () {
+    var kerrigan = multichain.create('kerrigan');
+    var json = proRegTxFixture.getProRegIPv6PayloadJSON();
+    var Payload = kerrigan.ProRegTxPayload;
+    var payload = Object.create(Payload.prototype);
+    Object.assign(payload, json, {
+      scriptPayout: new kerrigan.Script(
+        new kerrigan.PrivateKey('testnet').toAddress()
+      ).toHex(),
+      payloadSig: undefined,
+      payloadSigSize: 0,
+    });
+    payload.validate();
+    var buffer = payload.toBuffer();
+    buffer
+      .slice(42, 60)
+      .toString('hex')
+      .should.equal(proRegTxFixture.PROV6_SERVICE_HEX);
+
+    var restored = Payload.fromBuffer(buffer);
+    restored.service.should.equal(proRegTxFixture.getProRegIPv6Service());
+  });
+
   it('Osmium rejects an IPv6 service because supportsIPv6 is false', function () {
     var osmium = multichain.create('osmium');
     var json = proRegTxFixture.getProRegIPv6PayloadJSON();

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **Kerrigan `ProRegTxPayload` rejected IPv6 services with `Expected service to be a string with ip address and port`.**
+  Kerrigan Core accepts IPv4 and IPv6 ProTx services
+  (`MnNetInfo::ValidateService` in `src/evo/netinfo.cpp`, v1.3.2), but the
+  chain config did not set `supportsIPv6`. Both Kerrigan networks now set it,
+  as Maximus does.
+
 ## 4.1.0
 
 ### Added

@@ -172,11 +172,11 @@ describe('Kerrigan chain', function () {
   });
 
   describe('ipv6', function () {
-    it('should not advertise IPv6 service support on livenet', function () {
-      chai.expect(kerrigan.Networks.livenet.supportsIPv6).to.be.undefined;
+    it('should advertise IPv6 service support on livenet', function () {
+      kerrigan.Networks.livenet.supportsIPv6.should.equal(true);
     });
-    it('should not advertise IPv6 service support on testnet', function () {
-      chai.expect(kerrigan.Networks.testnet.supportsIPv6).to.be.undefined;
+    it('should advertise IPv6 service support on testnet', function () {
+      kerrigan.Networks.testnet.supportsIPv6.should.equal(true);
     });
   });
 
