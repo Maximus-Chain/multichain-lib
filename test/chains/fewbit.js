@@ -68,7 +68,7 @@ describe('Fewbit chain', function () {
       net.dnsSeeds.should.deep.equal([
         '89.168.20.232',
         '89.168.18.209',
-        'explorer.fewbit.online',
+        'pool.fewbit.online',
         'fewbit.online',
       ]);
     });
@@ -176,11 +176,11 @@ describe('Fewbit chain', function () {
   });
 
   describe('ipv6', function () {
-    it('should not advertise IPv6 service support on livenet', function () {
-      chai.expect(fewbit.Networks.livenet.supportsIPv6).to.be.undefined;
+    it('should advertise IPv6 service support on livenet', function () {
+      fewbit.Networks.livenet.supportsIPv6.should.equal(true);
     });
-    it('should not advertise IPv6 service support on testnet', function () {
-      chai.expect(fewbit.Networks.testnet.supportsIPv6).to.be.undefined;
+    it('should advertise IPv6 service support on testnet', function () {
+      fewbit.Networks.testnet.supportsIPv6.should.equal(true);
     });
   });
 

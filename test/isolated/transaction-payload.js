@@ -92,6 +92,30 @@ describe('cross-chain isolation: Transaction / ProRegTxPayload', function () {
     restored.service.should.equal(proRegTxFixture.getProRegIPv6Service());
   });
 
+  it('FewBit accepts an IPv6 service string and round-trips the bytes', function () {
+    var fewbit = multichain.create('fewbit');
+    var json = proRegTxFixture.getProRegIPv6PayloadJSON();
+    var Payload = fewbit.ProRegTxPayload;
+    var payload = Object.create(Payload.prototype);
+    Object.assign(payload, json, {
+      version: 1,
+      scriptPayout: new fewbit.Script(
+        new fewbit.PrivateKey('testnet').toAddress()
+      ).toHex(),
+      payloadSig: undefined,
+      payloadSigSize: 0,
+    });
+    payload.validate();
+    var buffer = payload.toBuffer();
+    buffer
+      .slice(42, 60)
+      .toString('hex')
+      .should.equal(proRegTxFixture.PROV6_SERVICE_HEX);
+
+    var restored = Payload.fromBuffer(buffer);
+    restored.service.should.equal(proRegTxFixture.getProRegIPv6Service());
+  });
+
   it('Osmium rejects an IPv6 service because supportsIPv6 is false', function () {
     var osmium = multichain.create('osmium');
     var json = proRegTxFixture.getProRegIPv6PayloadJSON();
