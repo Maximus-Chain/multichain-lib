@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.1.2
+
+### Fixed
+
+- **FewBit `ProRegTxPayload` rejected IPv6 services with `Expected service to be a string with ip address and port`.**
+  FewBit Core 6.6.6.6 GENESIS accepts IPv4 and IPv6 ProTx services
+  (`CheckService` in `src/evo/providertx.cpp`), but the chain config did not
+  set `supportsIPv6`. Both FewBit networks now set it.
+
+### Changed
+
+- **FewBit livenet DNS seed `explorer.fewbit.online` replaced by
+  `pool.fewbit.online`**, matching `chainparams.cpp` in FewBit Core 6.6.6.6.
+
 ## 4.1.1
 
 ### Fixed
